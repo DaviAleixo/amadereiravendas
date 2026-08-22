@@ -1,10 +1,10 @@
 import { formatCurrency } from './currency'
 import type { Product } from '@/data/products'
 
-export const WHATSAPP_NUMBER = '5551999999999'
+export const WHATSAPP_NUMBER = '5519984153232'
 
 export function productWhatsappUrl(product: Product) {
-  const message = `Olá! Vi a ${product.name} ${product.dimensions.split(' × ')[0]} — ${formatCurrency(product.price)} no site da Amadeireira e gostaria de saber mais.`
+  const message = `Olá! Tenho interesse no produto: ${product.name}. Preço à vista: ${formatCurrency(product.price)} | Parcelado: ${product.installments}. Poderia me passar mais informações?`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`
 }
 

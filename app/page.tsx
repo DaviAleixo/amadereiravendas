@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Menu, MessageCircle, X } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Menu, MessageCircle, X, Search } from 'lucide-react'
 import { categories, formatCategory, products, type Product } from '@/data/products'
 import { formatCurrency } from '@/lib/currency'
 import { generalWhatsappUrl, productWhatsappUrl } from '@/lib/whatsapp'
@@ -40,4 +40,52 @@ function FinalCTA() { return <section className="final-cta"><div><p className="e
 
 function Footer() { return <footer><a href="#top" className="brand"><span>AM</span><span>AMADEIREIRA</span></a><p>Peças que aproximam a natureza da casa.</p><div className="footer-links"><a href="https://www.instagram.com/amadeireira_/" target="_blank" rel="noreferrer">Instagram</a><a href={generalWhatsappUrl()} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a><a href="https://amadeireira.com.br/" target="_blank" rel="noreferrer">Site principal <ArrowUpRight size={13} /></a></div><small>© {new Date().getFullYear()} Amadeireira. Todos os direitos reservados.</small></footer> }
 
-export default function Page() { const [selected, setSelected] = useState('Todos'); const [modal, setModal] = useState<Product | null>(null); const filtered = useMemo(() => selected === 'Todos' ? products : products.filter(p => p.category === formatCategory(selected)), [selected]); return <main><Header /><Hero /><section className="catalog" id="produtos">{/* <div className="catalog-heading"><div><p className="eyebrow">Nossos produtos</p><h2>Encontre a peça ideal<br /><em>para o seu ambiente.</em></h2></div><p className="catalog-note">Cada peça carrega a história<br className="desktop-only" /> de uma madeira única.</p></div> */}<CategoryFilter selected={selected} setSelected={setSelected} /><div className="product-grid">{filtered.map(product => <ProductCard key={product.id} product={product} onOpen={setModal} />)}</div></section>{/* <FinalCTA /> */}<Footer /><a className="floating-whatsapp" href={generalWhatsappUrl()} target="_blank" rel="noreferrer" aria-label="Falar com a Amadeireira pelo WhatsApp"><MessageCircle size={22} /></a>{modal && <ProductModal product={modal} onClose={() => setModal(null)} />}</main> }
+export default function Page() { 
+  const [selected, setSelected] = useState('Todos'); 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [modal, setModal] = useState<Product | null>(null); 
+  
+  const filtered = useMemo(() => {
+    let result = selected === 'Todos' ? products : products.filter(p => p.category === formatCategory(selected));
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(q) || p.wood.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)));
+    }
+    return result;
+  }, [selected, searchQuery]); 
+  
+  return (
+    <main>
+      <Header />
+      <Hero />
+      <section className="catalog" id="produtos">
+        <div className="catalog-controls">
+          <CategoryFilter selected={selected} setSelected={setSelected} />
+          <div className="search-wrap">
+            <Search size={16} />
+            <input 
+              type="text" 
+              placeholder="Buscar por peça, madeira..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+            />
+          </div>
+        </div>
+        
+        {filtered.length > 0 ? (
+          <div className="product-grid">
+            {filtered.map(product => <ProductCard key={product.id} product={product} onOpen={setModal} />)}
+          </div>
+        ) : (
+          <div className="empty-search">
+            <p>Nenhuma peça encontrada para "{searchQuery}".</p>
+            <button onClick={() => setSearchQuery('')} className="text-link">Limpar busca</button>
+          </div>
+        )}
+      </section>
+      <Footer />
+      <a className="floating-whatsapp" href={generalWhatsappUrl()} target="_blank" rel="noreferrer" aria-label="Falar com a Amadeireira pelo WhatsApp"><MessageCircle size={22} /></a>
+      {modal && <ProductModal product={modal} onClose={() => setModal(null)} />}
+    </main>
+  );
+}
