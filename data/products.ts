@@ -13,12 +13,6 @@ export type Product = {
   images: string[]
 }
 
-const woodImages = [
-  'https://images.unsplash.com/photo-1618220179428-22790b461013?auto=format&fit=crop&w=1000&q=85',
-  'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=1000&q=85',
-  'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1000&q=85',
-]
-
 export const products: Product[] = [
   { id: 1, slug: 'mesa-prancha-resina-epoxi', name: 'Mesa Prancha com Resina Epóxi', category: 'pranchas', categoryLabel: 'Pranchas', dimensions: '247 x 90 cm', wood: 'Madeira e Resina', price: 7990, installments: '10x de R$ 899,00', description: 'Uma peça marcante que combina a beleza da madeira maciça com a elegância da resina epóxi.', images: ['/prancharesina.jpeg'] },
   { id: 2, slug: 'mesa-cascata-angelim-500', name: 'Mesa Cascata Angelim', category: 'mesas-cascata', categoryLabel: 'Mesas Cascata', dimensions: '500 x 90 cm', wood: 'Angelim', price: 12990, installments: 'R$ 13.990,00 em 10x', description: 'Acomoda até 12 pessoas.', images: ['/mesacascatamadeiraangelim.jpeg', '/mesacascatamadeiraangelim1.jpeg', '/mesacascatamadeiraangelim2.jpeg'] },
