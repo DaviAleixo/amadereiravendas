@@ -20,7 +20,7 @@ function ProductCard({ product, onOpen }: { product: Product; onOpen: (p: Produc
   const [index, setIndex] = useState(0)
   const next = () => setIndex(i => (i + 1) % product.images.length)
   const prev = () => setIndex(i => (i - 1 + product.images.length) % product.images.length)
-  return <article className="product-card"><div className="product-image-wrap" onClick={() => onOpen(product)}><Image src={product.images[index]} alt={`${product.name}, ${product.wood}`} fill sizes="(max-width: 600px) 50vw, (max-width: 1100px) 50vw, 33vw" className="product-image" /><span className="image-count">{product.images.length > 1 ? `${index + 1} / ${product.images.length}` : 'Peça única'}</span>{product.images.length > 1 && <><button className="gallery-arrow left" aria-label="Foto anterior" onClick={e => { e.stopPropagation(); prev() }}><ChevronLeft size={16} /></button><button className="gallery-arrow right" aria-label="Próxima foto" onClick={e => { e.stopPropagation(); next() }}><ChevronRight size={16} /></button></>}</div><div className="product-info"><div><p className="product-category">{product.categoryLabel}</p><h3 className="product-name-button" onClick={() => onOpen(product)}>{product.name}</h3><p className="dimensions">{product.dimensions}</p></div><div className="product-bottom"><div className="product-prices">{product.oldPrice && <span className="price-old">De: {product.oldPrice}</span>}<strong className="price-installments">{product.oldPrice ? 'Por: ' : ''}{product.installments}</strong><span className="price-cash">À vista: {formatCurrency(product.price)}</span></div><button className="interest-link" onClick={() => onOpen(product)}>Ver detalhes <ArrowUpRight size={15} /></button></div></div></article>
+  return <article className="product-card"><div className="product-image-wrap" onClick={() => onOpen(product)}><Image src={product.images[index]} alt={`${product.name}, ${product.wood}`} fill sizes="(max-width: 600px) 50vw, (max-width: 1100px) 50vw, 33vw" className="product-image" />{product.images.length > 1 && <span className="image-count">{index + 1} / {product.images.length}</span>}{product.images.length > 1 && <><button className="gallery-arrow left" aria-label="Foto anterior" onClick={e => { e.stopPropagation(); prev() }}><ChevronLeft size={16} /></button><button className="gallery-arrow right" aria-label="Próxima foto" onClick={e => { e.stopPropagation(); next() }}><ChevronRight size={16} /></button></>}</div><div className="product-info"><div><p className="product-category">{product.categoryLabel}</p><h3 className="product-name-button" onClick={() => onOpen(product)}>{product.name}</h3><p className="dimensions">{product.dimensions}</p></div><div className="product-bottom"><div className="product-prices">{product.oldPrice && <span className="price-old">De: {product.oldPrice}</span>}<strong className="price-installments">{product.oldPrice ? 'Por: ' : ''}{product.installments}</strong><span className="price-cash">À vista: {formatCurrency(product.price)}</span></div><button className="interest-link" onClick={() => onOpen(product)}>Ver detalhes <ArrowUpRight size={15} /></button></div></div></article>
 }
 
 function ProductModal({ product, onClose }: { product: Product; onClose: () => void }) {
@@ -56,6 +56,9 @@ export default function Page() {
   
   return (
     <main>
+      <div style={{ background: '#c8a97e', color: '#1a1a1a', textAlign: 'center', padding: '10px', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1.5px', zIndex: 100, position: 'absolute', top: 0, left: 0, right: 0 }}>
+        🔴 Catálogo Especial — Live Shop 22/Ago
+      </div>
       <Header />
       <Hero />
       <section className="catalog" id="produtos">
