@@ -269,20 +269,9 @@ export default function UsersPage() {
                         ✓ Todas as Abas (Acesso Total)
                       </span>
                     ) : (
-                      <div className="flex flex-wrap gap-1">
-                        {ALL_TABS.map(tab => {
-                          const isPermitted = allowed.includes(tab.id);
-                          if (!isPermitted) return null;
-                          return (
-                            <span
-                              key={tab.id}
-                              className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200"
-                            >
-                              {tab.label}
-                            </span>
-                          );
-                        })}
-                      </div>
+                      <span className="text-xs font-bold text-stone-700 bg-stone-100 px-2.5 py-1 rounded-lg border border-stone-200">
+                        Personalizado
+                      </span>
                     )}
                   </td>
 
@@ -366,16 +355,9 @@ export default function UsersPage() {
                     Acesso Total (Todas as Abas)
                   </span>
                 ) : (
-                  <div className="flex flex-wrap gap-1">
-                    {ALL_TABS.map(tab => {
-                      if (!allowed.includes(tab.id)) return null;
-                      return (
-                        <span key={tab.id} className="text-[10px] font-semibold px-2 py-0.5 bg-stone-100 rounded text-stone-700">
-                          {tab.label}
-                        </span>
-                      );
-                    })}
-                  </div>
+                  <span className="text-[10px] font-bold text-stone-700 bg-stone-100 px-2 py-0.5 rounded border border-stone-200 inline-block">
+                    Personalizado
+                  </span>
                 )}
               </div>
 

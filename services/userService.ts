@@ -1,6 +1,6 @@
 import { INITIAL_USERS, User, UserRole, AdminTabId } from '@/data/mockAdminData';
 
-const USERS_STORAGE_KEY = 'amadeireira_admin_users_v1';
+const USERS_STORAGE_KEY = 'amadeireira_admin_users_v2';
 const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v1';
 
 function getStoredUsers(): User[] {

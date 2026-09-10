@@ -519,9 +519,9 @@ export const INITIAL_USERS: User[] = [
     id: 'usr-2',
     name: 'Editor Catálogo',
     email: 'editor@amadeireira.com.br',
-    role: 'ADMINISTRADOR',
+    role: 'EDITOR',
     active: true,
-    allowedTabs: ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'],
+    allowedTabs: ['dashboard', 'produtos', 'categorias'],
     lastActivity: 'Há 2 horas',
     createdAt: '2026-02-01T14:30:00.000Z'
   }

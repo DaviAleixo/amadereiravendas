@@ -125,23 +125,18 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
       <div className="p-4 border-t border-[#26180f] bg-[#0c0704]">
         {currentUser && (
           <div className="flex items-center justify-between bg-[#1d130c] p-3 rounded-2xl border border-[#332115]">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-9 h-9 rounded-xl bg-[#362112] border border-[#c8a97e]/40 flex items-center justify-center text-[#f2dfc8] font-bold text-sm shrink-0">
-                {currentUser.name.charAt(0)}
-              </div>
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  {currentUser.role === 'ADMINISTRADOR' ? (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-[#c8a97e] font-semibold">
-                      <ShieldCheck className="w-3 h-3" /> Admin
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[10px] text-stone-400 font-medium">
-                      <UserCheck className="w-3 h-3" /> Editor
-                    </span>
-                  )}
-                </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                {currentUser.role === 'ADMINISTRADOR' ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-[#c8a97e] font-semibold">
+                    <ShieldCheck className="w-3 h-3" /> Admin
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] text-stone-400 font-medium">
+                    <UserCheck className="w-3 h-3" /> Editor
+                  </span>
+                )}
               </div>
             </div>
 

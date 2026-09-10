@@ -49,21 +49,21 @@ export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBo
               href={item.href}
               className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl transition-all relative ${
                 isActive
-                  ? 'text-[#fcefdc] font-bold scale-105'
-                  : 'text-[#9e8f7e] hover:text-stone-300 font-medium'
+                  ? 'text-white font-bold scale-105'
+                  : 'text-white/80 hover:text-white font-medium'
               }`}
             >
               <div className="relative">
                 <Icon
                   className={`w-5 h-5 ${
-                    isActive ? 'text-[#c8a97e]' : 'text-[#857463]'
+                    isActive ? 'text-[#c8a97e]' : 'text-[#a89582]'
                   }`}
                 />
                 {item.badge && (
                   <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
                 )}
               </div>
-              <span className="text-[10px] tracking-tight">{item.label}</span>
+              <span className="text-[10px] tracking-tight text-white font-semibold">{item.label}</span>
             </Link>
           );
         })}
@@ -71,10 +71,10 @@ export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBo
         {/* Menu Drawer Button */}
         <button
           onClick={onOpenMenu}
-          className="flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-[#9e8f7e] hover:text-stone-300 font-medium"
+          className="flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-white hover:text-white font-medium"
         >
-          <Menu className="w-5 h-5 text-[#857463]" />
-          <span className="text-[10px] tracking-tight">Mais</span>
+          <Menu className="w-5 h-5 text-[#a89582]" />
+          <span className="text-[10px] tracking-tight text-white font-semibold">Mais</span>
         </button>
       </div>
     </div>
