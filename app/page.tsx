@@ -348,22 +348,17 @@ export default function Page() {
 
         {/* Grade de Produtos com Aceternity Spotlight Cards (2 colunas no celular) */}
         {filtered.length > 0 ? (
-          <motion.div
-            layout
-            className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 lg:gap-8"
-          >
-            <AnimatePresence>
-              {filtered.map((product, i) => (
-                <AceternitySpotlightCard
-                  key={product.id}
-                  index={i}
-                  product={product}
-                  onOpen={setModal}
-                  liveMode={settings.liveMode}
-                />
-              ))}
-            </AnimatePresence>
-          </motion.div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-6 lg:gap-8">
+            {filtered.map((product, i) => (
+              <AceternitySpotlightCard
+                key={product.id}
+                index={i}
+                product={product}
+                onOpen={setModal}
+                liveMode={settings.liveMode}
+              />
+            ))}
+          </div>
         ) : (
           <motion.div
             initial={{ opacity: 0 }}
