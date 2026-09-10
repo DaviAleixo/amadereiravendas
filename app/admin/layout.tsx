@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { ToastProvider } from '@/components/admin/ToastContainer';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
+import { MobileBottomNav } from '@/components/admin/MobileBottomNav';
 import { settingsService } from '@/services/settingsService';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -57,7 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <ToastProvider>
       <div className="min-h-screen bg-[#f7f4ee] font-sans text-[#1a1410] flex antialiased selection:bg-[#c8a97e]/30">
-        {/* Sidebar */}
+        {/* Sidebar Desktop & Mobile Drawer */}
         <AdminSidebar
           isOpenMobile={mobileMenuOpen}
           onCloseMobile={() => setMobileMenuOpen(false)}
@@ -73,9 +74,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             liveModeActive={liveModeActive}
           />
 
-          <main className="flex-1 p-4 lg:p-8 overflow-y-auto max-w-7xl w-full mx-auto space-y-6">
+          <main className="flex-1 p-3 sm:p-5 lg:p-8 pb-24 lg:pb-8 overflow-y-auto max-w-7xl w-full mx-auto space-y-6">
             {children}
           </main>
+
+          {/* Native Mobile Bottom Navigation Bar */}
+          <MobileBottomNav
+            onOpenMenu={() => setMobileMenuOpen(true)}
+            liveModeActive={liveModeActive}
+          />
         </div>
       </div>
     </ToastProvider>

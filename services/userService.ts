@@ -1,4 +1,4 @@
-import { INITIAL_USERS, User, UserRole } from '@/data/mockAdminData';
+import { INITIAL_USERS, User, UserRole, AdminTabId } from '@/data/mockAdminData';
 
 const USERS_STORAGE_KEY = 'amadeireira_admin_users_v1';
 const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v1';
@@ -28,13 +28,16 @@ export const userService = {
     return getStoredUsers();
   },
 
-  async create(userData: { name: string; email: string; role: UserRole }): Promise<User> {
+  async create(userData: { name: string; email: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
     const users = getStoredUsers();
     const newUser: User = {
       id: `usr-${Date.now()}`,
       name: userData.name,
       email: userData.email,
       role: userData.role,
+      allowedTabs: userData.role === 'ADMINISTRADOR'
+        ? ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes']
+        : userData.allowedTabs || ['dashboard', 'produtos', 'categorias'],
       active: true,
       lastActivity: 'Nunca',
       createdAt: new Date().toISOString()
@@ -42,6 +45,19 @@ export const userService = {
     const updated = [...users, newUser];
     saveUsers(updated);
     return newUser;
+  },
+
+  async update(id: string, userData: Partial<User>): Promise<User | null> {
+    const users = getStoredUsers();
+    const index = users.findIndex(u => u.id === id);
+    if (index === -1) return null;
+
+    users[index] = {
+      ...users[index],
+      ...userData
+    };
+    saveUsers(users);
+    return users[index];
   },
 
   async toggleActive(id: string): Promise<User | null> {

@@ -29,12 +29,15 @@ export type Category = {
 
 export type UserRole = 'ADMINISTRADOR' | 'EDITOR';
 
+export type AdminTabId = 'dashboard' | 'produtos' | 'categorias' | 'live' | 'usuarios' | 'configuracoes';
+
 export type User = {
   id: string;
   name: string;
   email: string;
   role: UserRole;
   active: boolean;
+  allowedTabs?: AdminTabId[];
   lastActivity?: string;
   createdAt: string;
 }
@@ -508,6 +511,7 @@ export const INITIAL_USERS: User[] = [
     email: 'admin@amadeireira.com.br',
     role: 'ADMINISTRADOR',
     active: true,
+    allowedTabs: ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'],
     lastActivity: 'Agora mesmo',
     createdAt: '2026-01-15T10:00:00.000Z'
   },
@@ -515,8 +519,9 @@ export const INITIAL_USERS: User[] = [
     id: 'usr-2',
     name: 'Editor Catálogo',
     email: 'editor@amadeireira.com.br',
-    role: 'EDITOR',
+    role: 'ADMINISTRADOR',
     active: true,
+    allowedTabs: ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'],
     lastActivity: 'Há 2 horas',
     createdAt: '2026-02-01T14:30:00.000Z'
   }

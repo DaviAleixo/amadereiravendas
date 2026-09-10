@@ -8,29 +8,20 @@ import { authService } from '@/services/userService';
 type AdminHeaderProps = {
   title: string;
   subtitle?: string;
-  onOpenMobileMenu: () => void;
+  onOpenMobileMenu?: () => void;
   liveModeActive?: boolean;
 }
 
-export function AdminHeader({ title, subtitle, onOpenMobileMenu, liveModeActive = false }: AdminHeaderProps) {
+export function AdminHeader({ title, subtitle, liveModeActive = false }: AdminHeaderProps) {
   const currentUser = authService.getCurrentUser();
 
   return (
     <header className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-[#e8e2d8] px-4 lg:px-8 py-4 shadow-[0_2px_12px_rgba(27,16,10,0.03)]">
       <div className="flex items-center justify-between gap-4">
-        {/* Mobile Toggle & Page Title */}
-        <div className="flex items-center gap-3.5">
-          <button
-            onClick={onOpenMobileMenu}
-            className="lg:hidden p-2 rounded-xl text-[#3b2d23] hover:text-[#1a110c] hover:bg-[#f5f0e6] border border-[#e2d8c9] transition-colors"
-            aria-label="Abrir menu lateral"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl lg:text-2xl font-extrabold text-[#1c1511] tracking-tight">{title}</h1>
-            {subtitle && <p className="text-xs lg:text-sm text-[#736557] mt-0.5 font-medium">{subtitle}</p>}
-          </div>
+        {/* Page Title */}
+        <div>
+          <h1 className="text-xl lg:text-2xl font-extrabold text-[#1c1511] tracking-tight">{title}</h1>
+          {subtitle && <p className="text-xs lg:text-sm text-[#736557] mt-0.5 font-medium">{subtitle}</p>}
         </div>
 
         {/* Right Actions Header */}
@@ -59,16 +50,6 @@ export function AdminHeader({ title, subtitle, onOpenMobileMenu, liveModeActive 
             <span>Ver Site Público</span>
             <ExternalLink className="w-3.5 h-3.5" />
           </a>
-
-          {/* User Initial Avatar */}
-          {currentUser && (
-            <div
-              className="w-9 h-9 rounded-xl bg-[#23160e] text-[#f5e6d3] font-bold text-sm flex items-center justify-center border border-[#7a4e28]/40 shadow-sm shrink-0"
-              title={currentUser.name}
-            >
-              {currentUser.name.charAt(0)}
-            </div>
-          )}
         </div>
       </div>
     </header>

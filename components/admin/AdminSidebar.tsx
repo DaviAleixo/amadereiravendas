@@ -17,6 +17,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { authService } from '@/services/userService';
+import { AdminTabId } from '@/data/mockAdminData';
 import { useToast } from './ToastContainer';
 
 type AdminSidebarProps = {
@@ -37,20 +38,26 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
     router.push('/admin/login');
   };
 
-  const navItems = [
-    { label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
-    { label: 'Produtos', href: '/admin/produtos', icon: Package },
-    { label: 'Categorias', href: '/admin/categorias', icon: Layers },
+  const allNavItems: { id: AdminTabId; label: string; href: string; icon: any; badge?: string; badgeColor?: string }[] = [
+    { id: 'dashboard', label: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { id: 'produtos', label: 'Produtos', href: '/admin/produtos', icon: Package },
+    { id: 'categorias', label: 'Categorias', href: '/admin/categorias', icon: Layers },
     {
+      id: 'live',
       label: 'Catálogo / Live',
       href: '/admin/live',
       icon: Radio,
       badge: liveModeActive ? 'AO VIVO' : undefined,
       badgeColor: liveModeActive ? 'bg-rose-600 text-white animate-pulse' : undefined
     },
-    { label: 'Usuários', href: '/admin/usuarios', icon: Users },
-    { label: 'Configurações', href: '/admin/configuracoes', icon: Settings }
+    { id: 'usuarios', label: 'Usuários', href: '/admin/usuarios', icon: Users },
+    { id: 'configuracoes', label: 'Configurações', href: '/admin/configuracoes', icon: Settings }
   ];
+
+  const allowedTabs = currentUser?.allowedTabs || ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'];
+  const navItems = currentUser?.role === 'ADMINISTRADOR'
+    ? allNavItems
+    : allNavItems.filter(item => allowedTabs.includes(item.id));
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-[#120b07] text-[#e6dcce] border-r border-[#26180f]">
@@ -160,12 +167,12 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
 
       {/* Mobile Drawer Overlay */}
       {isOpenMobile && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex justify-end">
           <div
             className="fixed inset-0 bg-[#090604]/80 backdrop-blur-sm animate-fadeIn"
             onClick={onCloseMobile}
           />
-          <div className="relative w-72 max-w-full h-full z-10 animate-slideRight">
+          <div className="relative w-72 max-w-full h-full z-10 animate-slideLeft shadow-2xl">
             {sidebarContent}
           </div>
         </div>

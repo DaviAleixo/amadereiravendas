@@ -11,7 +11,6 @@ import {
   ArrowUp,
   ArrowDown,
   X,
-  AlertTriangle,
   Save
 } from 'lucide-react';
 import { categoryService } from '@/services/categoryService';
@@ -160,7 +159,7 @@ export default function CategoriesPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-amber-800 border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-[#8c5b2b] border-t-transparent rounded-full animate-spin" />
           <p className="text-sm text-stone-500 font-medium">Carregando categorias...</p>
         </div>
       </div>
@@ -170,48 +169,47 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6 animate-fadeIn">
       {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-stone-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-[#e7e0d5] shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-stone-900">Categorias do Catálogo ({categories.length})</h2>
-          <p className="text-xs text-stone-500">Organize a ordem e os grupos onde as peças serão filtradas no site.</p>
+          <h2 className="text-lg font-extrabold text-[#1c1511]">Categorias do Catálogo ({categories.length})</h2>
+          <p className="text-xs text-[#736557]">Organize a ordem e os grupos onde as peças serão filtradas no site.</p>
         </div>
 
         <button
           onClick={handleOpenCreateModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-900/20 transition-all active:scale-95 shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-sm rounded-xl shadow-md transition-all active:scale-95 shrink-0"
         >
           <Plus className="w-4 h-4" /> Nova Categoria
         </button>
       </div>
 
-      {/* Categories Table */}
-      <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* Desktop Categories Table */}
+      <div className="hidden md:block bg-white rounded-3xl border border-[#e7e0d5] shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+            <tr className="bg-[#fcfaf7] border-b border-[#e7e0d5] text-[11px] font-bold text-[#736557] uppercase tracking-wider">
               <th className="py-4 px-6">Ordem</th>
               <th className="py-4 px-6">Nome da Categoria</th>
-              <th className="py-4 px-6">Identificador (ID)</th>
               <th className="py-4 px-6 text-center">Produtos Vinculados</th>
               <th className="py-4 px-6 text-center">Status</th>
               <th className="py-4 px-6 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100 text-sm">
+          <tbody className="divide-y divide-[#f2ece3] text-sm">
             {categories.map((cat, index) => {
               const count = products.filter(p => p.category === cat.id).length;
 
               return (
-                <tr key={cat.id} className="hover:bg-stone-50/60 transition-colors group">
+                <tr key={cat.id} className="hover:bg-[#fcf9f4] transition-colors group">
                   {/* Order controls */}
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-1.5 font-bold text-stone-700">
+                    <div className="flex items-center gap-1.5 font-bold text-[#1c1511]">
                       <span className="w-6 text-center text-xs font-mono">{cat.order}</span>
                       <div className="flex flex-col">
                         {index > 0 && (
                           <button
                             onClick={() => handleMoveOrder(index, 'up')}
-                            className="p-0.5 text-stone-400 hover:text-stone-700"
+                            className="p-0.5 text-stone-400 hover:text-[#8c5b2b]"
                             title="Subir ordem"
                           >
                             <ArrowUp className="w-3.5 h-3.5" />
@@ -220,7 +218,7 @@ export default function CategoriesPage() {
                         {index < categories.length - 1 && (
                           <button
                             onClick={() => handleMoveOrder(index, 'down')}
-                            className="p-0.5 text-stone-400 hover:text-stone-700"
+                            className="p-0.5 text-stone-400 hover:text-[#8c5b2b]"
                             title="Descer ordem"
                           >
                             <ArrowDown className="w-3.5 h-3.5" />
@@ -232,19 +230,14 @@ export default function CategoriesPage() {
 
                   {/* Name & Desc */}
                   <td className="py-4 px-6">
-                    <p className="font-bold text-stone-900">{cat.name}</p>
-                    {cat.description && <p className="text-xs text-stone-500 mt-0.5">{cat.description}</p>}
-                  </td>
-
-                  {/* ID */}
-                  <td className="py-4 px-6 font-mono text-xs text-stone-500">
-                    {cat.id}
+                    <p className="font-bold text-[#1c1511]">{cat.name}</p>
+                    {cat.description && <p className="text-xs text-[#736557] mt-0.5">{cat.description}</p>}
                   </td>
 
                   {/* Linked Products Count */}
                   <td className="py-4 px-6 text-center">
-                    <span className="inline-flex items-center gap-1 text-xs font-extrabold text-stone-900 bg-stone-100 px-3 py-1 rounded-full">
-                      <Layers className="w-3.5 h-3.5 text-amber-900" /> {count} peças
+                    <span className="inline-flex items-center gap-1 text-xs font-extrabold text-[#8c5b2b] bg-[#fcf6eb] border border-[#ebdcc9] px-3 py-1 rounded-full">
+                      <Layers className="w-3.5 h-3.5 text-[#8c5b2b]" /> {count} peças
                     </span>
                   </td>
 
@@ -268,14 +261,14 @@ export default function CategoriesPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => handleOpenEditModal(cat)}
-                        className="p-2 text-stone-400 hover:text-amber-900 hover:bg-amber-50 rounded-lg transition-colors"
+                        className="p-2 text-stone-500 hover:text-[#8c5b2b] hover:bg-[#fcf6eb] rounded-xl transition-colors"
                         title="Editar categoria"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleStartDelete(cat)}
-                        className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
                         title="Excluir categoria"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -287,6 +280,82 @@ export default function CategoriesPage() {
             })}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Categories Cards List */}
+      <div className="md:hidden space-y-3">
+        {categories.map((cat, index) => {
+          const count = products.filter(p => p.category === cat.id).length;
+
+          return (
+            <div key={cat.id} className="bg-white rounded-2xl p-4 border border-[#e7e0d5] shadow-sm space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-7 h-7 rounded-xl bg-[#fcf6eb] text-[#8c5b2b] font-mono font-bold text-xs flex items-center justify-center border border-[#ebdcc9]">
+                    #{cat.order}
+                  </span>
+                  <div>
+                    <h4 className="font-extrabold text-[#1c1511] text-sm">{cat.name}</h4>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleToggleActive(cat.id)}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${
+                    cat.active ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                  }`}
+                >
+                  {cat.active ? 'Ativa' : 'Inativa'}
+                </button>
+              </div>
+
+              {cat.description && (
+                <p className="text-xs text-[#736557] bg-[#fdfbf7] p-2.5 rounded-xl border border-[#f0e9dd]">
+                  {cat.description}
+                </p>
+              )}
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#f2ece3] text-xs">
+                <span className="inline-flex items-center gap-1 font-bold text-[#8c5b2b] bg-[#fcf6eb] px-2.5 py-0.5 rounded-md border border-[#ebdcc9]">
+                  <Layers size={12} /> {count} peças vinculadas
+                </span>
+
+                <div className="flex items-center gap-1">
+                  {index > 0 && (
+                    <button
+                      onClick={() => handleMoveOrder(index, 'up')}
+                      className="p-1.5 bg-stone-100 rounded-lg text-stone-600"
+                      title="Subir ordem"
+                    >
+                      <ArrowUp size={14} />
+                    </button>
+                  )}
+                  {index < categories.length - 1 && (
+                    <button
+                      onClick={() => handleMoveOrder(index, 'down')}
+                      className="p-1.5 bg-stone-100 rounded-lg text-stone-600"
+                      title="Descer ordem"
+                    >
+                      <ArrowDown size={14} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleOpenEditModal(cat)}
+                    className="p-1.5 bg-[#fcf6eb] text-[#8c5b2b] rounded-lg font-bold text-xs flex items-center gap-1"
+                  >
+                    <Edit2 size={13} /> Editar
+                  </button>
+                  <button
+                    onClick={() => handleStartDelete(cat)}
+                    className="p-1.5 bg-rose-50 text-rose-700 rounded-lg"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Modal Nova / Editar Categoria */}
@@ -364,7 +433,7 @@ export default function CategoriesPage() {
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs rounded-xl shadow-md"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-xl shadow-md"
                 >
                   <Save className="w-4 h-4" /> Salvar Categoria
                 </button>

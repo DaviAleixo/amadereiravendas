@@ -16,7 +16,8 @@ import {
   Radio,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { productService } from '@/services/productService';
 import { categoryService } from '@/services/categoryService';
@@ -287,35 +288,36 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-sm space-y-3 lg:space-y-0 lg:flex items-center justify-between gap-4">
-        {/* Search Input */}
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-[#e7e0d5] shadow-sm space-y-3">
+        {/* Search Row */}
+        <div className="relative w-full">
+          <Search className="w-4 h-4 text-[#8c5b2b] absolute left-3.5 top-3.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nome da peça, madeira, dimensão..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+            placeholder="Buscar por peça, madeira, medida..."
+            className="w-full pl-10 pr-10 py-2.5 text-sm bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:border-transparent focus:outline-none font-semibold text-[#1c1511] placeholder:text-[#9e8f7e]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-2.5 text-stone-400 hover:text-stone-600 p-0.5"
+              className="absolute right-3 top-3 text-[#9e8f7e] hover:text-[#1c1511] p-0.5 rounded-full hover:bg-stone-200 transition-colors"
+              title="Limpar busca"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Category Filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-stone-400" />
+        {/* Dropdowns Row: 2-column grid on mobile for perfect alignment */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-3">
+          {/* Category Filter Dropdown */}
+          <div className="relative">
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="px-3 py-2 text-xs font-semibold bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
+              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl hover:border-[#c8a97e] focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate"
             >
               <option value="all">Todas as Categorias</option>
               {categories.map(cat => (
@@ -324,18 +326,36 @@ export default function ProductsPage() {
                 </option>
               ))}
             </select>
+            <ChevronDown className="w-3.5 h-3.5 text-[#8c5b2b] absolute right-2.5 top-3.5 pointer-events-none" />
           </div>
 
-          {/* Status Filter */}
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as any)}
-            className="px-3 py-2 text-xs font-semibold bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none"
-          >
-            <option value="all">Todos os Status</option>
-            <option value="active">Somente Ativos</option>
-            <option value="inactive">Somente Inativos</option>
-          </select>
+          {/* Status Filter Dropdown */}
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as any)}
+              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl hover:border-[#c8a97e] focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate"
+            >
+              <option value="all">Todos os Status</option>
+              <option value="active">🟢 Apenas Ativos</option>
+              <option value="inactive">🔴 Apenas Ocultos</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-[#8c5b2b] absolute right-2.5 top-3.5 pointer-events-none" />
+          </div>
+
+          {/* Active Filter Clear */}
+          {(selectedCategory !== 'all' || statusFilter !== 'all' || searchQuery) && (
+            <button
+              onClick={() => {
+                setSelectedCategory('all');
+                setStatusFilter('all');
+                setSearchQuery('');
+              }}
+              className="col-span-2 sm:col-span-1 text-[11px] font-bold text-[#8c5b2b] hover:text-[#5a3818] underline py-1 px-2 text-center"
+            >
+              Limpar filtros
+            </button>
+          )}
         </div>
       </div>
 

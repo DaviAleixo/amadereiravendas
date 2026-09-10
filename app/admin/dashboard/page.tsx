@@ -64,45 +64,45 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Welcome Hero Craftsmanship Banner */}
-      <div className="admin-wood-gradient text-white rounded-3xl p-6 lg:p-8 shadow-xl border border-[#7a4e28]/40 relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-12 -translate-y-12 w-72 h-72 bg-[#c8a97e]/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-3.5 max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#3d2516] border border-[#c8a97e]/40 text-[#f5e2cb] text-xs font-bold uppercase tracking-wider shadow-sm">
-            <Award className="w-3.5 h-3.5 text-[#c8a97e]" /> Amadeireira — Catálogo Oficial
-          </span>
-          <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-white leading-tight">
-            Gestão do Catálogo de Marcenaria Nobre
-          </h2>
-          <p className="text-[#dcd1c4] text-sm leading-relaxed font-normal">
-            Controle todas as peças em madeira maciça, resina epóxi e raízes esculpidas. Alterne o Modo Live em tempo real e edite preços normais e promocionais.
-          </p>
-
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <Link
-              href="/admin/produtos/novo"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-xl shadow-lg shadow-[#8c5b2b]/30 transition-all transform active:scale-95 border border-[#c8a97e]/40"
-            >
-              <Plus className="w-4 h-4" /> Novo Produto
-            </Link>
-            <Link
-              href="/admin/categorias"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#26170e] hover:bg-[#362215] text-[#f2e7d8] font-bold text-xs rounded-xl border border-[#523521] transition-colors"
-            >
-              <Plus className="w-4 h-4" /> Nova Categoria
-            </Link>
-            <Link
-              href="/admin/live"
-              className={`inline-flex items-center gap-2 px-5 py-2.5 font-bold text-xs rounded-xl border transition-colors ${
-                isLive
-                  ? 'bg-rose-900/80 hover:bg-rose-800 border-rose-500 text-rose-100 shadow-lg shadow-rose-900/40'
-                  : 'bg-[#26170e] hover:bg-[#362215] border-[#523521] text-[#dcd1c4]'
-              }`}
-            >
-              <Radio className={`w-4 h-4 ${isLive ? 'animate-pulse text-rose-400' : ''}`} /> Configurar Live
-            </Link>
+      {/* Clean Luxury Quick Actions Header */}
+      <div className="bg-white p-5 sm:p-6 rounded-3xl border border-[#e7e0d5] shadow-sm space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#8c5b2b]" />
+              <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#8c5b2b]">Painel Principal</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-[#1c1511]">Ações Rápidas</h2>
           </div>
+        </div>
+
+        {/* Action Buttons Grid (Equal alignment on mobile) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link
+            href="/admin/produtos/novo"
+            className="flex items-center justify-center gap-2.5 px-4 py-3.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-2xl shadow-md shadow-[#8c5b2b]/20 transition-all active:scale-95 border border-[#c8a97e]/40 text-center"
+          >
+            <Plus className="w-4 h-4 shrink-0" />
+            <span>Novo Produto</span>
+          </Link>
+          <Link
+            href="/admin/categorias"
+            className="flex items-center justify-center gap-2.5 px-4 py-3.5 bg-[#fdfbf7] hover:bg-[#f6ebd7] text-[#3b2d23] font-bold text-xs rounded-2xl border border-[#e7e0d5] transition-all shadow-sm active:scale-95 text-center"
+          >
+            <Plus className="w-4 h-4 text-[#8c5b2b] shrink-0" />
+            <span>Nova Categoria</span>
+          </Link>
+          <Link
+            href="/admin/live"
+            className={`flex items-center justify-center gap-2.5 px-4 py-3.5 font-bold text-xs rounded-2xl border transition-all shadow-sm active:scale-95 text-center ${
+              isLive
+                ? 'bg-rose-50 hover:bg-rose-100 border-rose-300 text-rose-700'
+                : 'bg-[#fdfbf7] hover:bg-[#f6ebd7] border-[#e7e0d5] text-[#3b2d23]'
+            }`}
+          >
+            <Radio className={`w-4 h-4 shrink-0 ${isLive ? 'animate-pulse text-rose-600' : 'text-[#8c5b2b]'}`} />
+            <span>Configurar Live</span>
+          </Link>
         </div>
       </div>
 
