@@ -1,13 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Menu, X, Search, Radio } from 'lucide-react'
-import { categories, formatCategory } from '@/data/products'
+import { categories as defaultCategories, formatCategory } from '@/data/products'
 import { formatCurrency } from '@/lib/currency'
 import { generalWhatsappUrl, productWhatsappUrl } from '@/lib/whatsapp'
 import { productService } from '@/services/productService'
 import { settingsService } from '@/services/settingsService'
+import { categoryService } from '@/services/categoryService'
 import { Product, CatalogSettings, INITIAL_SETTINGS } from '@/data/mockAdminData'
 
 function Header() {
@@ -56,20 +57,128 @@ function Hero() {
   )
 }
 
-function CategoryFilter({ selected, setSelected }: { selected: string; setSelected: (value: string) => void }) {
+function CategoryFilter({
+  selected,
+  setSelected,
+  categoryList
+}: {
+  selected: string;
+  setSelected: (value: string) => void;
+  categoryList: string[];
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [isMouseDown, setIsMouseDown] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startX, setStartX] = useState(0)
+  const [scrollLeftState, setScrollLeftState] = useState(0)
+  const [hasMoved, setHasMoved] = useState(false)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const checkScroll = useCallback(() => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    setCanScrollLeft(scrollLeft > 5)
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 5)
+  }, [])
+
+  useEffect(() => {
+    checkScroll()
+    window.addEventListener('resize', checkScroll)
+    return () => window.removeEventListener('resize', checkScroll)
+  }, [checkScroll, categoryList])
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return
+    setIsMouseDown(true)
+    setHasMoved(false)
+    setStartX(e.pageX - scrollRef.current.offsetLeft)
+    setScrollLeftState(scrollRef.current.scrollLeft)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isMouseDown || !scrollRef.current) return
+    e.preventDefault()
+    const x = e.pageX - scrollRef.current.offsetLeft
+    const walk = (x - startX) * 1.5
+    if (Math.abs(walk) > 4) {
+      setHasMoved(true)
+      setIsDragging(true)
+    }
+    scrollRef.current.scrollLeft = scrollLeftState - walk
+    checkScroll()
+  }
+
+  const handleMouseUpOrLeave = () => {
+    setIsMouseDown(false)
+    setTimeout(() => setIsDragging(false), 50)
+  }
+
+  const handleWheel = (e: React.WheelEvent) => {
+    if (!scrollRef.current) return
+    if (e.deltaY !== 0) {
+      scrollRef.current.scrollLeft += e.deltaY * 0.8
+      checkScroll()
+    }
+  }
+
+  const scrollByAmount = (amount: number) => {
+    if (!scrollRef.current) return
+    scrollRef.current.scrollBy({ left: amount, behavior: 'smooth' })
+    setTimeout(checkScroll, 300)
+  }
+
+  const handleCategoryClick = (category: string) => {
+    if (hasMoved || isDragging) return
+    setSelected(category)
+  }
+
   return (
-    <div className="category-scroll" role="tablist" aria-label="Filtrar por categoria">
-      {categories.map(category => (
+    <div className="category-filter-wrapper">
+      {canScrollLeft && (
         <button
-          role="tab"
-          aria-selected={selected === category}
-          className={selected === category ? 'active' : ''}
-          key={category}
-          onClick={() => setSelected(category)}
+          className="scroll-arrow-btn left-btn"
+          aria-label="Rolar para esquerda"
+          onClick={() => scrollByAmount(-200)}
         >
-          {category}
+          <ChevronLeft size={16} />
         </button>
-      ))}
+      )}
+
+      <div
+        ref={scrollRef}
+        className={`category-scroll ${isDragging ? 'is-dragging' : ''}`}
+        role="tablist"
+        aria-label="Filtrar por categoria"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
+        onScroll={checkScroll}
+        onWheel={handleWheel}
+      >
+        {categoryList.map(category => (
+          <button
+            role="tab"
+            aria-selected={selected === category}
+            className={selected === category ? 'active' : ''}
+            key={category}
+            onClick={() => handleCategoryClick(category)}
+          >
+            {category}
+          </button>
+        ))}
+      </div>
+
+      {canScrollRight && (
+        <button
+          className="scroll-arrow-btn right-btn"
+          aria-label="Rolar para direita"
+          onClick={() => scrollByAmount(200)}
+        >
+          <ChevronRight size={16} />
+        </button>
+      )}
     </div>
   )
 }
@@ -210,16 +319,25 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState('')
   const [modal, setModal] = useState<Product | null>(null)
   const [productList, setProductList] = useState<Product[]>([])
+  const [categoryList, setCategoryList] = useState<string[]>(defaultCategories)
   const [settings, setSettings] = useState<CatalogSettings>(INITIAL_SETTINGS)
 
   useEffect(() => {
     async function init() {
-      const [prods, sets] = await Promise.all([
+      const [prods, sets, cats] = await Promise.all([
         productService.getAll(),
-        settingsService.getSettings()
+        settingsService.getSettings(),
+        categoryService.getAll()
       ])
       setProductList(prods.filter(p => p.active))
       setSettings(sets)
+
+      if (cats && cats.length > 0) {
+        const activeCatNames = cats.filter(c => c.active).map(c => c.name)
+        if (activeCatNames.length > 0) {
+          setCategoryList(['Todos', ...activeCatNames])
+        }
+      }
     }
     init()
   }, [])
@@ -244,7 +362,7 @@ export default function Page() {
       <Hero />
       <section className="catalog" id="produtos">
         <div className="catalog-controls">
-          <CategoryFilter selected={selected} setSelected={setSelected} />
+          <CategoryFilter selected={selected} setSelected={setSelected} categoryList={categoryList} />
           <div className="search-wrap">
             <Search size={16} />
             <input

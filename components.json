@@ -17,5 +17,13 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "iconLibrary": "lucide"
+  "iconLibrary": "lucide",
+  "registries": {
+    "@aceternity": {
+      "url": "https://ui.aceternity.com/registry/{name}.json",
+      "headers": {
+        "Authorization": "Bearer aceternity_23546fc19118c424ca7a4f1a9aae878ea4547eabf592419c7cf4516d46d4f0a5"
+      }
+    }
+  }
 }
