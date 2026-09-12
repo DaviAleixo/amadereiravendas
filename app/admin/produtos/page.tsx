@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Package,
   Search,
@@ -12,7 +13,6 @@ import {
   Eye,
   CheckCircle2,
   XCircle,
-  Filter,
   Radio,
   X,
   ChevronLeft,
@@ -83,9 +83,15 @@ function ProductSiteModal({
       aria-label={product.name}
       onMouseDown={e => e.target === e.currentTarget && onClose()}
     >
-      <div className="modal">
-        <button className="modal-close" aria-label="Fechar detalhes" onClick={onClose}>
-          <X size={20} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.96 }}
+        transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+        className="modal rounded-none border border-[#ded6c7]"
+      >
+        <button className="modal-close rounded-none" aria-label="Fechar detalhes" onClick={onClose}>
+          <X size={18} />
         </button>
 
         {/* Gallery Section */}
@@ -103,20 +109,20 @@ function ProductSiteModal({
             priority
           />
           {isLiveOffer && (
-            <div className="absolute top-4 left-4 bg-rose-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-md shadow-lg z-10 flex items-center gap-1.5 animate-pulse">
+            <div className="absolute top-4 left-4 bg-rose-700 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-none shadow-lg z-10 flex items-center gap-1.5 animate-pulse">
               <Radio size={13} /> Oferta Live Ativa
             </div>
           )}
           <div className="modal-controls">
             {product.images.length > 1 && (
               <>
-                <button onClick={prev} aria-label="Imagem anterior">
+                <button onClick={prev} aria-label="Imagem anterior" className="rounded-none">
                   <ChevronLeft size={18} />
                 </button>
-                <span>
+                <span className="font-mono text-xs">
                   {index + 1} / {product.images.length}
                 </span>
-                <button onClick={next} aria-label="Próxima imagem">
+                <button onClick={next} aria-label="Próxima imagem" className="rounded-none">
                   <ChevronRight size={18} />
                 </button>
               </>
@@ -158,7 +164,7 @@ function ProductSiteModal({
           {/* Action Buttons: Site Interest + Direct Admin Edit */}
           <div className="flex flex-col sm:flex-row items-center gap-2 mt-6">
             <a
-              className="button button-whatsapp !m-0 flex-1"
+              className="button button-whatsapp !m-0 flex-1 rounded-none"
               href={productWhatsappUrl(product as any)}
               target="_blank"
               rel="noreferrer"
@@ -167,13 +173,13 @@ function ProductSiteModal({
             </a>
             <Link
               href={`/admin/produtos/${product.id}/editar`}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-amber-900 hover:bg-amber-950 text-amber-100 text-xs font-bold uppercase tracking-wider rounded-md transition-colors"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white text-xs font-bold uppercase tracking-wider rounded-none transition-colors"
             >
-              <Edit2 size={15} /> Editar Peça
+              <Edit2 size={14} /> Editar Peça
             </Link>
           </div>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -182,65 +188,55 @@ export default function ProductsPage() {
   const { showToast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [liveMode, setLiveMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [liveMode, setLiveMode] = useState(false);
 
-  // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
 
-  // Modals
-  const [deleteId, setDeleteId] = useState<number | null>(null);
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const [prods, cats, settings] = await Promise.all([
+        productService.getAll(),
+        categoryService.getAll(),
+        settingsService.getSettings()
+      ]);
+      setProducts(prods);
+      setCategories(cats);
+      setLiveMode(settings.liveMode);
+      setLoading(false);
+    }
     loadData();
   }, []);
 
-  async function loadData() {
-    setLoading(true);
-    const [prods, cats, sets] = await Promise.all([
-      productService.getAll(),
-      categoryService.getAll(),
-      settingsService.getSettings()
-    ]);
-    setProducts(prods);
-    setCategories(cats);
-    setLiveMode(sets.liveMode);
-    setLoading(false);
-  }
-
-  // Filtered Products
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      // Search
-      const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        !q ||
-        product.name.toLowerCase().includes(q) ||
-        product.wood.toLowerCase().includes(q) ||
-        product.dimensions.toLowerCase().includes(q);
-
-      // Category
-      const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
-
-      // Status
-      const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && product.active) ||
-        (statusFilter === 'inactive' && !product.active);
-
-      return matchesSearch && matchesCategory && matchesStatus;
+    return products.filter(p => {
+      if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
+      if (statusFilter === 'active' && !p.active) return false;
+      if (statusFilter === 'inactive' && p.active) return false;
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        const matchesName = p.name.toLowerCase().includes(query);
+        const matchesWood = p.wood.toLowerCase().includes(query);
+        const matchesCategory = p.categoryLabel.toLowerCase().includes(query);
+        const matchesDim = p.dimensions.toLowerCase().includes(query);
+        if (!matchesName && !matchesWood && !matchesCategory && !matchesDim) return false;
+      }
+      return true;
     });
-  }, [products, searchQuery, selectedCategory, statusFilter]);
+  }, [products, selectedCategory, statusFilter, searchQuery]);
 
   const handleToggleActive = async (id: number) => {
     const updated = await productService.toggleActive(id);
     if (updated) {
       setProducts(prev => prev.map(p => (p.id === id ? updated : p)));
       showToast(
-        updated.active ? 'Produto Ativado' : 'Produto Desativado',
+        updated.active ? 'Produto Ativado' : 'Produto Ocultado',
         `"${updated.name}" agora está ${updated.active ? 'visível' : 'oculto'} no catálogo.`,
         updated.active ? 'success' : 'info'
       );
@@ -263,32 +259,39 @@ export default function ProductsPage() {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-4 border-amber-800 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-stone-500 font-medium">Carregando catálogo de produtos...</p>
+          <div className="w-8 h-8 border-2 border-[#8c5b2b] border-t-transparent rounded-none animate-spin" />
+          <p className="text-xs text-[#736557] font-semibold uppercase tracking-wider">Carregando catálogo de produtos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <motion.div 
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-5"
+    >
       {/* Top Header Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-stone-200 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-none border border-[#ded6c7] shadow-sm">
         <div>
-          <h2 className="text-lg font-bold text-stone-900">Catálogo de Produtos ({products.length})</h2>
-          <p className="text-xs text-stone-500">Gerencie preços normais, promocionais da Live, dimensões e fotos.</p>
+          <h2 className="text-lg font-black text-[#17100b] tracking-tight">Catálogo de Produtos ({products.length})</h2>
+          <p className="text-xs text-[#736557]">Gerencie preços normais, promocionais da Live, dimensões e fotos.</p>
         </div>
 
-        <Link
-          href="/admin/produtos/novo"
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-900/20 transition-all transform active:scale-95 shrink-0"
-        >
-          <Plus className="w-4 h-4" /> Novo Produto
-        </Link>
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <Link
+            href="/admin/produtos/novo"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-none shadow-sm transition-all shrink-0 border border-[#c8a97e]/40 uppercase tracking-wider"
+          >
+            <Plus className="w-4 h-4" /> Novo Produto
+          </Link>
+        </motion.div>
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-[#e7e0d5] shadow-sm space-y-3">
+      <div className="bg-white p-4 sm:p-5 rounded-none border border-[#ded6c7] shadow-sm space-y-3">
         {/* Search Row */}
         <div className="relative w-full">
           <Search className="w-4 h-4 text-[#8c5b2b] absolute left-3.5 top-3.5" />
@@ -297,12 +300,12 @@ export default function ProductsPage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Buscar por peça, madeira, medida..."
-            className="w-full pl-10 pr-10 py-2.5 text-sm bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:border-transparent focus:outline-none font-semibold text-[#1c1511] placeholder:text-[#9e8f7e]"
+            className="w-full pl-10 pr-10 py-2.5 text-xs bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-semibold text-[#17100b] placeholder:text-[#9e8f7e]"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-3 text-[#9e8f7e] hover:text-[#1c1511] p-0.5 rounded-full hover:bg-stone-200 transition-colors"
+              className="absolute right-3 top-3 text-[#9e8f7e] hover:text-[#17100b] p-0.5 rounded-none hover:bg-stone-200 transition-colors"
               title="Limpar busca"
             >
               <X className="w-4 h-4" />
@@ -317,7 +320,7 @@ export default function ProductsPage() {
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl hover:border-[#c8a97e] focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate"
+              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fcfaf7] border border-[#ded6c7] rounded-none hover:border-[#c8a97e] focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate uppercase tracking-wider"
             >
               <option value="all">Todas as Categorias</option>
               {categories.map(cat => (
@@ -334,7 +337,7 @@ export default function ProductsPage() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value as any)}
-              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fdfbf7] border border-[#e7e0d5] rounded-xl hover:border-[#c8a97e] focus:bg-white focus:ring-2 focus:ring-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate"
+              className="w-full sm:w-auto appearance-none pl-3.5 pr-8 py-2.5 text-xs font-bold text-[#3b2d23] bg-[#fcfaf7] border border-[#ded6c7] rounded-none hover:border-[#c8a97e] focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none transition-all shadow-sm cursor-pointer truncate uppercase tracking-wider"
             >
               <option value="all">Todos os Status</option>
               <option value="active">🟢 Apenas Ativos</option>
@@ -360,10 +363,10 @@ export default function ProductsPage() {
       </div>
 
       {/* Desktop Products Table */}
-      <div className="hidden md:block bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+      <div className="hidden md:block bg-white rounded-none border border-[#ece4d8] shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+            <tr className="bg-[#fcfaf7] border-b border-[#ece4d8] text-[10px] font-extrabold text-[#736557] uppercase tracking-wider">
               <th className="py-4 px-6">Produto</th>
               <th className="py-4 px-4">Categoria</th>
               <th className="py-4 px-4">Dimensões / Madeira</th>
@@ -373,56 +376,61 @@ export default function ProductsPage() {
               <th className="py-4 px-6 text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-stone-100 text-sm">
+          <tbody className="text-sm">
             {filteredProducts.length === 0 ? (
               <tr>
                 <td colSpan={7} className="py-12 text-center text-stone-500">
-                  <Package className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-                  <p className="font-semibold text-stone-700">Nenhum produto encontrado</p>
-                  <p className="text-xs text-stone-400 mt-1">Tente ajustar os termos de busca ou filtros.</p>
+                  <Package className="w-8 h-8 text-[#a89988] mx-auto mb-2" />
+                  <p className="font-bold text-[#17100b]">Nenhum produto encontrado</p>
+                  <p className="text-xs text-[#736557] mt-1">Tente ajustar os termos de busca ou filtros.</p>
                 </td>
               </tr>
             ) : (
-              filteredProducts.map(product => (
-                <tr key={product.id} className="hover:bg-stone-50/60 transition-colors group">
+              filteredProducts.map((product, idx) => (
+                <tr
+                  key={product.id}
+                  className={`transition-colors group ${
+                    idx % 2 === 0 ? 'bg-white hover:bg-[#f5ebd6]/50' : 'bg-[#f8f4ee] hover:bg-[#f0e3cc]/60'
+                  }`}
+                >
                   {/* Photo & Name */}
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => setViewProduct(product)}>
-                      <div className="w-12 h-12 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0 relative">
+                      <div className="w-12 h-12 rounded-none bg-stone-100 overflow-hidden shrink-0 relative shadow-sm">
                         <img
                           src={product.images[0] || '/capa.webp'}
                           alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-cover rounded-none"
                         />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-stone-900 group-hover:text-amber-900 transition-colors truncate">
+                        <p className="font-bold text-[#17100b] group-hover:text-[#8c5b2b] transition-colors truncate">
                           {product.name}
                         </p>
-                        <p className="text-xs text-stone-400 font-mono">id: #{product.id}</p>
+                        <p className="text-xs text-[#8c7a67] font-mono">id: #{product.id}</p>
                       </div>
                     </div>
                   </td>
 
                   {/* Category */}
                   <td className="py-4 px-4">
-                    <span className="inline-block bg-stone-100 text-stone-700 text-xs font-semibold px-2.5 py-1 rounded-lg">
+                    <span className="inline-block bg-[#fcf6eb] text-[#8c5b2b] text-[11px] font-bold px-2.5 py-1 rounded-none uppercase tracking-wider">
                       {product.categoryLabel}
                     </span>
                   </td>
 
                   {/* Dimensions & Wood */}
                   <td className="py-4 px-4">
-                    <p className="text-xs font-medium text-stone-800">{product.dimensions}</p>
-                    <p className="text-[11px] text-stone-500">{product.wood}</p>
+                    <p className="text-xs font-bold text-[#17100b]">{product.dimensions}</p>
+                    <p className="text-[11px] text-[#736557]">{product.wood}</p>
                   </td>
 
                   {/* Normal Price */}
                   <td className="py-4 px-4">
-                    <p className="font-bold text-stone-900 text-sm">
+                    <p className="font-black text-[#17100b] text-sm">
                       {formatCurrency(product.normalPrice.price)}
                     </p>
-                    <p className="text-[11px] text-stone-500 truncate max-w-[150px]">
+                    <p className="text-[11px] text-[#736557] truncate max-w-[150px]">
                       {product.normalPrice.installments}
                     </p>
                   </td>
@@ -431,8 +439,8 @@ export default function ProductsPage() {
                   <td className="py-4 px-4">
                     {product.livePrice && product.livePrice.price > 0 ? (
                       <div>
-                        <p className="font-bold text-rose-700 text-sm flex items-center gap-1">
-                          <Radio className="w-3 h-3 text-rose-500 animate-pulse" />
+                        <p className="font-black text-rose-700 text-sm flex items-center gap-1">
+                          <Radio className="w-3 h-3 text-rose-600 animate-pulse" />
                           {formatCurrency(product.livePrice.price)}
                         </p>
                         <p className="text-[11px] text-rose-900/70 truncate max-w-[150px]">
@@ -440,7 +448,7 @@ export default function ProductsPage() {
                         </p>
                       </div>
                     ) : (
-                      <span className="text-xs text-stone-400 italic">Mesmo do normal</span>
+                      <span className="text-xs text-[#8c7a67] italic font-medium">Mesmo do normal</span>
                     )}
                   </td>
 
@@ -448,10 +456,10 @@ export default function ProductsPage() {
                   <td className="py-4 px-4 text-center">
                     <button
                       onClick={() => handleToggleActive(product.id)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition-colors ${
+                      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-none text-xs font-bold transition-colors ${
                         product.active
-                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                          : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                          : 'bg-stone-100 text-stone-600 border border-stone-200 hover:bg-stone-200'
                       }`}
                       title={product.active ? 'Clique para desativar' : 'Clique para ativar'}
                     >
@@ -465,21 +473,21 @@ export default function ProductsPage() {
                     <div className="flex items-center justify-end gap-1.5">
                       <button
                         onClick={() => setViewProduct(product)}
-                        className="p-2 text-amber-900 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors border border-amber-200/80"
+                        className="p-2 text-[#8c5b2b] bg-[#fcf6eb] hover:bg-[#f5ebd6] rounded-none transition-colors"
                         title="Ver modal da peça no site"
                       >
                         <Eye className="w-4 h-4" />
                       </button>
                       <Link
                         href={`/admin/produtos/${product.id}/editar`}
-                        className="p-2 text-stone-600 hover:text-stone-900 hover:bg-stone-100 rounded-lg transition-colors border border-stone-200"
+                        className="p-2 text-[#5c4a3b] hover:text-[#17100b] hover:bg-[#fcfaf7] rounded-none transition-colors"
                         title="Editar produto"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Link>
                       <button
                         onClick={() => setDeleteId(product.id)}
-                        className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        className="p-2 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-none transition-colors"
                         title="Excluir produto"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -494,22 +502,27 @@ export default function ProductsPage() {
       </div>
 
       {/* Mobile Products Cards List */}
-      <div className="md:hidden space-y-4">
+      <div className="md:hidden space-y-3">
         {filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center border border-stone-200 text-stone-500">
-            <Package className="w-8 h-8 text-stone-300 mx-auto mb-2" />
-            <p className="font-semibold text-stone-700">Nenhum produto encontrado</p>
+          <div className="bg-white rounded-none p-8 text-center border border-[#ece4d8] text-stone-500">
+            <Package className="w-8 h-8 text-[#a89988] mx-auto mb-2" />
+            <p className="font-bold text-[#17100b]">Nenhum produto encontrado</p>
           </div>
         ) : (
-          filteredProducts.map(product => (
-            <div key={product.id} className="bg-white rounded-2xl p-4 border border-stone-200 shadow-sm space-y-3">
+          filteredProducts.map((product, idx) => (
+            <div
+              key={product.id}
+              className={`rounded-none p-4 border border-[#ece4d8] shadow-sm space-y-3 ${
+                idx % 2 === 0 ? 'bg-white' : 'bg-[#f8f4ee]'
+              }`}
+            >
               <div className="flex items-start gap-3" onClick={() => setViewProduct(product)}>
-                <div className="w-16 h-16 rounded-xl bg-stone-100 border border-stone-200 overflow-hidden shrink-0">
-                  <img src={product.images[0] || '/capa.webp'} alt={product.name} className="w-full h-full object-cover" />
+                <div className="w-16 h-16 rounded-none bg-stone-100 overflow-hidden shrink-0">
+                  <img src={product.images[0] || '/capa.webp'} alt={product.name} className="w-full h-full object-cover rounded-none" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-md">
+                    <span className="text-[10px] font-bold text-[#8c5b2b] bg-[#fcf6eb] px-2 py-0.5 rounded-none uppercase tracking-wider">
                       {product.categoryLabel}
                     </span>
                     <button
@@ -517,48 +530,48 @@ export default function ProductsPage() {
                         e.stopPropagation();
                         handleToggleActive(product.id);
                       }}
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        product.active ? 'bg-emerald-50 text-emerald-700' : 'bg-stone-100 text-stone-500'
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-none ${
+                        product.active ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' : 'bg-stone-100 text-stone-600 border border-stone-200'
                       }`}
                     >
                       {product.active ? 'Ativo' : 'Inativo'}
                     </button>
                   </div>
-                  <h4 className="font-bold text-stone-900 text-sm mt-1 truncate">{product.name}</h4>
-                  <p className="text-xs text-stone-500">{product.dimensions} • {product.wood}</p>
+                  <h4 className="font-bold text-[#17100b] text-sm mt-1 truncate">{product.name}</h4>
+                  <p className="text-xs text-[#736557]">{product.dimensions} • {product.wood}</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-xs">
+              <div className="flex items-center justify-between pt-2 border-t border-[#f2ece3]/80 text-xs">
                 <div>
-                  <span className="text-[10px] font-semibold text-stone-400 block uppercase">Preço Normal</span>
-                  <strong className="text-stone-900 text-sm">{formatCurrency(product.normalPrice.price)}</strong>
+                  <span className="text-[9px] font-extrabold text-[#8c7a67] block uppercase tracking-wider">Preço Normal</span>
+                  <strong className="text-[#17100b] text-sm font-black">{formatCurrency(product.normalPrice.price)}</strong>
                 </div>
 
                 {product.livePrice && product.livePrice.price > 0 && (
                   <div className="text-right">
-                    <span className="text-[10px] font-semibold text-rose-600 block uppercase">Preço Live</span>
-                    <strong className="text-rose-700 text-sm">{formatCurrency(product.livePrice.price)}</strong>
+                    <span className="text-[9px] font-extrabold text-rose-700 block uppercase tracking-wider">Preço Live</span>
+                    <strong className="text-rose-700 text-sm font-black">{formatCurrency(product.livePrice.price)}</strong>
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-stone-100">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#f2ece3]/80">
                 <button
                   onClick={() => setViewProduct(product)}
-                  className="px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-50 rounded-lg flex items-center gap-1"
+                  className="px-3 py-1.5 text-xs font-bold text-[#8c5b2b] bg-[#fcf6eb] rounded-none flex items-center gap-1 uppercase tracking-wider"
                 >
                   <Eye size={13} /> Visualizar
                 </button>
                 <Link
                   href={`/admin/produtos/${product.id}/editar`}
-                  className="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-stone-100 rounded-lg flex items-center gap-1"
+                  className="px-3 py-1.5 text-xs font-bold text-[#5c4a3b] bg-[#fcfaf7] rounded-none flex items-center gap-1 uppercase tracking-wider"
                 >
                   <Edit2 size={13} /> Editar
                 </Link>
                 <button
                   onClick={() => setDeleteId(product.id)}
-                  className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 rounded-lg"
+                  className="px-3 py-1.5 text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-none uppercase tracking-wider"
                 >
                   Excluir
                 </button>
@@ -569,13 +582,15 @@ export default function ProductsPage() {
       </div>
 
       {/* Product Site Modal (Opens when clicking Eye icon) */}
-      {viewProduct && (
-        <ProductSiteModal
-          product={viewProduct}
-          onClose={() => setViewProduct(null)}
-          liveMode={liveMode}
-        />
-      )}
+      <AnimatePresence>
+        {viewProduct && (
+          <ProductSiteModal
+            product={viewProduct}
+            onClose={() => setViewProduct(null)}
+            liveMode={liveMode}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Delete Confirmation */}
       <ConfirmDialog
@@ -588,6 +603,6 @@ export default function ProductsPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setDeleteId(null)}
       />
-    </div>
+    </motion.div>
   );
 }

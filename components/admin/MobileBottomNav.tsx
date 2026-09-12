@@ -35,7 +35,7 @@ export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBo
     : allNavItems.filter(item => allowedTabs.includes(item.id));
 
   return (
-    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#120b07]/95 backdrop-blur-md border-t border-[#2d1b10] px-2 py-2 shadow-2xl">
+    <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-[#0e0805]/98 backdrop-blur-md border-t border-[#26180f] px-2 py-2 shadow-2xl">
       <div className="flex items-center justify-around">
         {navItems.map(item => {
           const Icon = item.icon;
@@ -47,20 +47,20 @@ export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBo
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl transition-all relative ${
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-none transition-all relative ${
                 isActive
-                  ? 'text-white font-bold scale-105'
-                  : 'text-white/80 hover:text-white font-medium'
+                  ? 'text-white font-bold bg-[#1f130b] border border-[#c8a97e]/40'
+                  : 'text-[#9c8b79] hover:text-white font-medium border border-transparent'
               }`}
             >
               <div className="relative">
                 <Icon
                   className={`w-5 h-5 ${
-                    isActive ? 'text-[#c8a97e]' : 'text-[#a89582]'
+                    isActive ? 'text-[#c8a97e]' : 'text-[#857463]'
                   }`}
                 />
                 {item.badge && (
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full animate-ping" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-none animate-ping" />
                 )}
               </div>
               <span className="text-[10px] tracking-tight text-white font-semibold">{item.label}</span>
@@ -71,9 +71,9 @@ export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBo
         {/* Menu Drawer Button */}
         <button
           onClick={onOpenMenu}
-          className="flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-white hover:text-white font-medium"
+          className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-none text-[#9c8b79] hover:text-white font-medium border border-transparent hover:bg-[#1f130b]"
         >
-          <Menu className="w-5 h-5 text-[#a89582]" />
+          <Menu className="w-5 h-5 text-[#857463]" />
           <span className="text-[10px] tracking-tight text-white font-semibold">Mais</span>
         </button>
       </div>

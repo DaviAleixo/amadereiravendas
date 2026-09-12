@@ -501,7 +501,7 @@ export const INITIAL_SETTINGS: CatalogSettings = {
   promotionButtonText: 'Ver Peças em Destaque',
   promotionLink: '#produtos',
   catalogTitle: 'Amadeireira — Painel de Gestão',
-  whatsappNumber: '5511999999999'
+  whatsappNumber: '5519984153232'
 };
 
 export const INITIAL_USERS: User[] = [

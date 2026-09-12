@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { motion } from 'motion/react';
 import { ArrowLeft, Save, Package } from 'lucide-react';
 import { productService } from '@/services/productService';
 import { categoryService } from '@/services/categoryService';
@@ -81,47 +82,54 @@ export default function NewProductPage() {
   };
 
   return (
-    <div className="space-y-6 animate-fadeIn max-w-4xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      className="space-y-6 max-w-4xl mx-auto"
+    >
       {/* Header Bar */}
       <div className="flex items-center justify-between">
-        <Link
-          href="/admin/produtos"
-          className="inline-flex items-center gap-2 text-xs font-bold text-stone-600 hover:text-stone-900 bg-white border border-stone-200 px-3.5 py-2 rounded-xl shadow-sm transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" /> Voltar para a lista
-        </Link>
-        <span className="text-xs font-semibold text-stone-400">Novo Produto</span>
+        <motion.div whileHover={{ x: -2 }}>
+          <Link
+            href="/admin/produtos"
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#5c4a3b] hover:text-[#17100b] bg-white border border-[#ded6c7] px-3.5 py-2 rounded-none shadow-sm transition-colors uppercase tracking-wider"
+          >
+            <ArrowLeft className="w-4 h-4" /> Voltar para a lista
+          </Link>
+        </motion.div>
+        <span className="text-xs font-extrabold text-[#8c7a67] uppercase tracking-wider">Novo Produto</span>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Details Card */}
-        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-4">
-          <div className="border-b border-stone-100 pb-3 flex items-center gap-2">
-            <Package className="w-5 h-5 text-amber-900" />
-            <h3 className="font-bold text-stone-900 text-base">Informações Básicas do Produto</h3>
+        <div className="bg-white rounded-none p-6 border border-[#ded6c7] shadow-sm space-y-4">
+          <div className="border-b border-[#f0e9dd] pb-3 flex items-center gap-2">
+            <Package className="w-5 h-5 text-[#8c5b2b]" />
+            <h3 className="font-extrabold text-[#17100b] text-base tracking-tight uppercase tracking-wider">Informações Básicas do Produto</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Product Name */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-stone-900 mb-1">Nome da Peça: *</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1.5">Nome da Peça: *</label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="ex: Mesa Cascata Pequiá 340cm"
-                className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold text-stone-900"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-bold text-[#17100b]"
               />
             </div>
 
             {/* Category Select */}
             <div>
-              <label className="block text-xs font-bold text-stone-900 mb-1">Categoria: *</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1.5">Categoria: *</label>
               <select
                 value={categoryId}
                 onChange={e => setCategoryId(e.target.value)}
-                className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none font-medium"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium text-[#17100b]"
               >
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
@@ -133,45 +141,45 @@ export default function NewProductPage() {
 
             {/* Wood Type */}
             <div>
-              <label className="block text-xs font-bold text-stone-900 mb-1">Tipo de Madeira:</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1.5">Tipo de Madeira:</label>
               <input
                 type="text"
                 value={wood}
                 onChange={e => setWood(e.target.value)}
                 placeholder="ex: Angelim, Pequiá, Aroeira, Resina..."
-                className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium"
               />
             </div>
 
             {/* Dimensions */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-stone-900 mb-1">Tamanho / Dimensões:</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1.5">Tamanho / Dimensões:</label>
               <input
                 type="text"
                 value={dimensions}
                 onChange={e => setDimensions(e.target.value)}
                 placeholder="ex: 340 x 122 cm ou 156 x 33 x 88 cm de altura"
-                className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium"
               />
             </div>
 
             {/* Description */}
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-stone-900 mb-1">Descrição Detalhada:</label>
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-stone-700 mb-1.5">Descrição Detalhada:</label>
               <textarea
                 rows={3}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 placeholder="Descrição comercial da peça, capacidade de lugares e acabamento..."
-                className="w-full px-3.5 py-2.5 text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium leading-relaxed"
               />
             </div>
 
             {/* Active Status */}
-            <div className="md:col-span-2 flex items-center justify-between p-3 bg-stone-50 rounded-xl border border-stone-200">
+            <div className="md:col-span-2 flex items-center justify-between p-3.5 bg-[#fcfaf7] rounded-none border border-[#ded6c7]">
               <div>
-                <p className="text-xs font-bold text-stone-900">Visibilidade no Catálogo</p>
-                <p className="text-[11px] text-stone-500">Defina se o produto ficará visível aos clientes no site público.</p>
+                <p className="text-xs font-bold text-[#17100b]">Visibilidade no Catálogo</p>
+                <p className="text-[11px] text-[#736557]">Defina se o produto ficará visível aos clientes no site público.</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -180,17 +188,17 @@ export default function NewProductPage() {
                   onChange={e => setActive(e.target.checked)}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-800"></div>
+                <div className="w-10 h-5 bg-[#ded6c7] peer-focus:outline-none rounded-none peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-none after:h-4 after:w-4 after:transition-all peer-checked:bg-[#8c5b2b]"></div>
               </label>
             </div>
           </div>
         </div>
 
         {/* Prices Section Card */}
-        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-4">
-          <div className="border-b border-stone-100 pb-3">
-            <h3 className="font-bold text-stone-900 text-base">Valores e Parcelamento (Preço Normal vs Live)</h3>
-            <p className="text-xs text-stone-500">Preço Normal é o valor do catálogo regular. Preço Live é opcional para promoções.</p>
+        <div className="bg-white rounded-none p-6 border border-[#ded6c7] shadow-sm space-y-4">
+          <div className="border-b border-[#f0e9dd] pb-3">
+            <h3 className="font-extrabold text-[#17100b] text-base tracking-tight uppercase tracking-wider">Valores e Parcelamento (Preço Normal vs Live)</h3>
+            <p className="text-xs text-[#736557]">Preço Normal é o valor do catálogo regular. Preço Live é opcional para promoções.</p>
           </div>
 
           <PriceGroupInput
@@ -202,28 +210,30 @@ export default function NewProductPage() {
         </div>
 
         {/* Images Section Card */}
-        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm">
+        <div className="bg-white rounded-none p-6 border border-[#ded6c7] shadow-sm">
           <ImageUploader images={images} onChange={setImages} />
         </div>
 
         {/* Submit Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4">
+        <div className="flex items-center justify-end gap-3 pt-2">
           <Link
             href="/admin/produtos"
-            className="px-5 py-3 text-sm font-semibold text-stone-600 bg-white hover:bg-stone-100 border border-stone-200 rounded-xl transition-colors"
+            className="px-5 py-3 text-xs font-bold text-[#5c4a3b] bg-white hover:bg-[#fcfaf7] border border-[#ded6c7] rounded-none transition-colors uppercase tracking-wider"
           >
             Cancelar
           </Link>
-          <button
+          <motion.button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-amber-800 hover:bg-amber-900 text-white font-bold text-sm rounded-xl shadow-lg shadow-amber-900/20 transition-all active:scale-95 disabled:opacity-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex items-center gap-2 px-7 py-3 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-none shadow-sm transition-all disabled:opacity-50 border border-[#c8a97e]/40 uppercase tracking-wider"
           >
             <Save className="w-4 h-4" />
             <span>{loading ? 'Salvando Produto...' : 'Salvar Produto'}</span>
-          </button>
+          </motion.button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

@@ -110,7 +110,7 @@ export function ProductModalMotion({ product, onClose, liveMode }: ProductModalM
                     key={i}
                     onClick={() => setIndex(i)}
                     className={`relative w-12 h-12 rounded-sm overflow-hidden border-2 transition-all shrink-0 ${
-                      index === i ? 'border-amber-500 scale-105 shadow-md' : 'border-stone-800 opacity-60 hover:opacity-100'
+                      index === i ? 'border-amber-500 shadow-md' : 'border-stone-800 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <Image src={img} alt="" fill className="object-cover" />

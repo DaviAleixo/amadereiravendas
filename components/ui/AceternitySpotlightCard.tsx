@@ -16,10 +16,11 @@ interface AceternitySpotlightCardProps {
 
 export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: AceternitySpotlightCardProps) {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
   const [mouseX, setMouseX] = useState(0);
   const [mouseY, setMouseY] = useState(0);
 
-  // Motion 3D tilt values
+  // Motion 3D tilt values for desktop
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
@@ -49,25 +50,42 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
     y.set(0);
   };
 
-  const handleDragEnd = (_: any, info: { offset: { x: number } }) => {
+  const handleDragEnd = (_: any, info: { offset: { x: number }; velocity: { x: number } }) => {
     if (product.images.length <= 1) return;
-    if (info.offset.x < -30) {
+    if (info.offset.x < -30 || info.velocity.x < -200) {
+      setDirection(1);
       setPhotoIndex(i => (i + 1) % product.images.length);
-    } else if (info.offset.x > 30) {
+    } else if (info.offset.x > 30 || info.velocity.x > 200) {
+      setDirection(-1);
       setPhotoIndex(i => (i - 1 + product.images.length) % product.images.length);
     }
   };
 
   const activePrice = liveMode && product.livePrice && product.livePrice.price > 0 ? product.livePrice : product.normalPrice;
-  const isPromotional = liveMode && product.livePrice && product.livePrice.price > 0;
   const currentImage = product.images[photoIndex] || '/backgrounddesktop.png';
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 40 : -40,
+      opacity: 0.6
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -40 : 40,
+      opacity: 0.4
+    })
+  };
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25, delay: index * 0.03 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-30px' }}
+      whileTap={{ scale: 0.97, transition: { type: 'spring', stiffness: 450, damping: 25 } }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.04, 0.3) }}
       style={{
         rotateX,
         rotateY,
@@ -75,7 +93,7 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      className="group spotlight-card flex flex-col justify-between cursor-pointer w-full bg-[#180e09] border border-amber-900/30 rounded-md overflow-hidden"
+      className="group spotlight-card flex flex-col justify-between cursor-pointer w-full bg-[#180e09] border border-amber-900/30 rounded-md overflow-hidden select-none active:border-amber-500/50"
       onClick={() => onOpen(product)}
     >
       {/* Spotlight Radial Follower */}
@@ -88,18 +106,20 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
       />
 
       {/* Image Container with Drag/Swipe Support */}
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-950/80 rounded-t-md border-b border-amber-900/20">
-        <AnimatePresence mode="wait">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-stone-950/80 rounded-t-md border-b border-amber-900/20 touch-pan-y">
+        <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={photoIndex}
+            custom={direction}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
             drag={product.images.length > 1 ? 'x' : false}
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.15}
+            dragElastic={0.2}
             onDragEnd={handleDragEnd}
-            initial={{ opacity: 0.7 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0.5 }}
-            transition={{ duration: 0.2 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 30 }}
             className="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing"
           >
             <Image
@@ -108,21 +128,19 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
               fill
               priority={index < 4}
               sizes="(max-width: 600px) 50vw, (max-width: 1100px) 33vw, 25vw"
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105 pointer-events-none"
+              className="object-cover pointer-events-none"
             />
           </motion.div>
         </AnimatePresence>
 
         {/* Top Badges */}
         <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between z-10 pointer-events-none">
-          {isPromotional ? (
+          {liveMode ? (
             <span className="bg-rose-600/90 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-sm shadow-lg border border-rose-400/30 flex items-center gap-1 animate-pulse">
               <Radio className="w-3 h-3 text-rose-200" /> Oferta Live
             </span>
           ) : (
-            <span className="bg-stone-950/80 backdrop-blur-md text-amber-300/90 text-[9px] sm:text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-sm border border-amber-500/20">
-              {product.wood}
-            </span>
+            <div />
           )}
 
           {product.images.length > 1 && (
@@ -132,14 +150,15 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
           )}
         </div>
 
-        {/* Subtle Swipe Dots Indicator */}
+        {/* Animated Swipe Dots Indicator */}
         {product.images.length > 1 && (
           <div className="absolute bottom-2 inset-x-0 flex items-center justify-center gap-1 z-10 pointer-events-none">
             {product.images.map((_, i) => (
-              <span
+              <motion.span
                 key={i}
+                layout
                 className={`h-1 rounded-full transition-all duration-300 ${
-                  i === photoIndex ? 'w-3.5 bg-amber-400' : 'w-1 bg-stone-500/60'
+                  i === photoIndex ? 'w-4 bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : 'w-1 bg-stone-500/60'
                 }`}
               />
             ))}
@@ -172,13 +191,14 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
             </span>
           </div>
 
-          <button
-            onClick={() => onOpen(product)}
+          <motion.div
+            whileHover={{ x: 2, y: -2 }}
+            whileTap={{ scale: 0.9 }}
             className="inline-flex items-center gap-0.5 text-[9px] sm:text-xs uppercase tracking-wider font-bold text-amber-400 group-hover:text-amber-200 transition-colors shrink-0 pb-0.5"
           >
             <span className="hidden sm:inline">Detalhes</span>
             <ArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </button>
+          </motion.div>
         </div>
       </div>
     </motion.article>

@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, ArrowUpRight, Menu, X, Search, Sparkles } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Menu, X, Search, Sparkles, Leaf, Compass, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 import { categories as defaultCategories, formatCategory } from '@/data/products';
 import { formatCurrency } from '@/lib/currency';
 import { generalWhatsappUrl } from '@/lib/whatsapp';
@@ -33,38 +33,41 @@ function Header() {
     <>
       {/* Floating Luxury Header Bar (Positioned over Hero image) */}
       <div className="absolute top-0 left-0 right-0 z-40 p-3 sm:p-5">
-        <header className="max-w-7xl mx-auto bg-[#180e09]/90 backdrop-blur-xl border border-amber-600/30 rounded-md px-4 sm:px-8 py-3 flex items-center justify-between shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
+        <header className="max-w-7xl mx-auto bg-[#180e09]/90 backdrop-blur-xl border border-amber-600/30 rounded-md px-4 sm:px-8 py-2.5 sm:py-3 flex items-center justify-between shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
           {/* Logo */}
           <a href="#top" className="flex items-center gap-2 group" aria-label="Amadeireira, início">
             <img src="/logo1.webp" alt="Amadeireira" className="h-8 sm:h-9 w-auto transition-transform group-hover:scale-105" />
           </a>
 
-          {/* Desktop Nav Links (Hidden on Mobile) */}
-          <div className="hidden md:flex items-center gap-8 text-xs font-semibold uppercase tracking-widest text-stone-300">
+          {/* Desktop Nav Links (Matching Reference Photo) */}
+          <div className="hidden md:flex items-center gap-10 text-[11px] font-bold uppercase tracking-[0.18em] text-stone-300">
             <a href="#produtos" className="hover:text-amber-300 transition-colors py-1 relative group">
               <span>Produtos</span>
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 transition-all duration-300 group-hover:w-full" />
             </a>
-            <a
-              href="https://www.instagram.com/amadeireira_?utm_source=ig_web_button_share_sheet&igsi=ZDNlZDc0MzIxNw=="
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-amber-300 transition-colors py-1 relative group flex items-center gap-1"
-            >
-              <span>Instagram</span>
-              <ArrowUpRight size={13} className="text-amber-400" />
+            <a href="#sobre" className="hover:text-amber-300 transition-colors py-1 relative group">
+              <span>Sobre Nós</span>
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 transition-all duration-300 group-hover:w-full" />
             </a>
-          </div>
-
-          {/* Actions: Desktop WhatsApp Button & Mobile Toggle */}
-          <div className="flex items-center gap-3">
-            {/* Desktop WhatsApp Button */}
             <a
               href={generalWhatsappUrl()}
               target="_blank"
               rel="noreferrer"
-              className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-[#be7b4c] hover:bg-[#a6653b] text-[#120b07] border border-amber-400/40 font-bold text-xs uppercase tracking-wider rounded-md shadow-lg shadow-amber-950/50 transition-all hover:scale-105 active:scale-95"
+              className="hover:text-amber-300 transition-colors py-1 relative group"
+            >
+              <span>Contato</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-amber-400 transition-all duration-300 group-hover:w-full" />
+            </a>
+          </div>
+
+          {/* Actions: WhatsApp Button (Visible on all screens) & Mobile Toggle */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* WhatsApp Button */}
+            <a
+              href={generalWhatsappUrl()}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 bg-[#be7b4c] hover:bg-[#a6653b] text-[#120b07] border border-amber-400/40 font-extrabold text-[11px] sm:text-xs uppercase tracking-wider rounded-md shadow-lg shadow-amber-950/50 transition-all hover:scale-105 active:scale-95"
             >
               <img src="/wpp.png" alt="WhatsApp" className="w-3.5 h-3.5" />
               <span>WhatsApp</span>
@@ -72,11 +75,11 @@ function Header() {
 
             {/* Mobile Hamburger Button */}
             <button
-              className="md:hidden w-10 h-10 rounded-md bg-amber-950/80 border border-amber-500/40 text-amber-200 grid place-items-center hover:bg-amber-600 hover:text-stone-950 transition-all active:scale-90"
+              className="md:hidden w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-amber-950/80 border border-amber-500/40 text-amber-200 grid place-items-center hover:bg-amber-600 hover:text-stone-950 transition-all active:scale-90"
               aria-label="Abrir menu"
               onClick={() => setOpen(!open)}
             >
-              {open ? <X size={20} /> : <Menu size={20} />}
+              {open ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </header>
@@ -151,7 +154,7 @@ function Header() {
 
 function Hero() {
   return (
-    <section className="hero relative overflow-hidden min-h-[85vh] sm:min-h-[850px] flex items-center justify-center md:justify-start" id="top">
+    <section className="hero relative overflow-hidden min-h-[100dvh] flex flex-col justify-between" id="top">
       {/* Hero Background Images */}
       <div className="hero-image">
         <Image
@@ -160,7 +163,7 @@ function Hero() {
           fill
           priority
           sizes="100vw"
-          className="desktop-only"
+          className="hidden md:block object-cover object-center"
         />
         <Image
           src="/backgroundmobile.png"
@@ -168,61 +171,98 @@ function Hero() {
           fill
           priority
           sizes="100vw"
-          className="mobile-only"
+          className="block md:hidden object-cover object-center"
         />
       </div>
 
-      {/* Dynamic Background Radial Glow */}
-      <div className="hero-glow-bg" />
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-16 pt-24 sm:pt-32 pb-16">
+      {/* Main Content Area */}
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-8 md:px-16 pt-28 sm:pt-36 pb-8 flex-1 flex flex-col justify-center">
         <motion.div
           initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="max-w-xl text-center md:text-left mx-auto md:mx-0 flex flex-col items-center md:items-start space-y-5 sm:space-y-7"
+          className="max-w-xl text-left mx-0 flex flex-col items-start space-y-4 sm:space-y-6"
         >
           {/* Eyebrow */}
-          <p className="text-[11px] sm:text-xs uppercase font-semibold tracking-[0.2em] text-amber-400/90 flex items-center justify-center md:justify-start gap-3">
-            <span className="w-5 h-[1.5px] bg-amber-400/80 inline-block" />
-            <span>A beleza do natural</span>
+          <p className="text-[11px] sm:text-xs uppercase font-bold tracking-[0.22em] text-[#d49a6a] flex items-center justify-start gap-2.5">
+            <span className="w-5 h-[1.5px] bg-[#d49a6a] inline-block" />
+            <span>Móveis Sob Medida</span>
           </p>
 
           {/* Main Headline */}
-          <h1 className="font-serif font-normal text-3xl sm:text-5xl md:text-6xl text-stone-100 leading-[1.12] tracking-tight">
-            Madeira que<br />
-            <em className="italic text-amber-400 font-normal">transforma</em> ambientes.
+          <h1 className="font-extrabold text-4xl sm:text-5xl md:text-6xl text-stone-100 leading-[1.08] tracking-tight">
+            Madeira<br />
+            que conta<br />
+            <em className="font-serif italic font-normal text-[#d49a6a] block sm:inline">histórias.</em>
           </h1>
 
           {/* Subtitle */}
           <p className="text-stone-300 text-xs sm:text-sm leading-relaxed max-w-md font-sans">
-            Móveis marcantes, acabamento cuidadoso e a beleza natural da madeira em cada detalhe artesanal.
+            Móveis marcantes, acabamento cuidadoso e a beleza natural da madeira em cada detalhe artesanal. Peças únicas para transformar seus ambientes.
           </p>
 
-          {/* Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 w-full pt-1">
+          {/* Stacked Full-Width Buttons on Mobile / Inline on Desktop */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-3.5 w-full pt-2">
             <a
               href="#produtos"
-              className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-amber-700 hover:bg-amber-600 text-stone-950 font-bold text-xs uppercase tracking-wider rounded-md shadow-xl shadow-amber-950/40 transition-all hover:translate-y-[-2px] active:translate-y-0 group"
+              className="inline-flex items-center justify-center gap-2.5 px-6 py-4 sm:py-3.5 bg-[#be7b4c] hover:bg-[#a6653b] text-[#120b07] border border-amber-400/40 font-extrabold text-xs uppercase tracking-wider rounded-md shadow-xl shadow-amber-950/60 transition-all hover:translate-y-[-2px] active:translate-y-0 group w-full sm:w-auto text-center"
             >
-              <span>Conheça nossos produtos</span>
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+              <span>Ver nosso catálogo</span>
+              <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
             </a>
 
             <a
               href={generalWhatsappUrl()}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-xs text-stone-200 hover:text-amber-300 font-semibold uppercase tracking-wider border-b border-stone-400/40 pb-1 hover:border-amber-400 transition-all"
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 sm:py-3.5 bg-stone-950/40 hover:bg-stone-900/60 text-stone-200 hover:text-white border border-amber-500/30 font-bold text-xs uppercase tracking-wider rounded-md backdrop-blur-sm shadow-md transition-all active:scale-[0.98] w-full sm:w-auto text-center"
             >
               <span>Fale conosco</span>
-              <ArrowUpRight size={15} className="text-amber-400" />
             </a>
+          </div>
+
+          {/* 3-Column Value Props Row */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-6 pt-5 sm:pt-6 border-t border-amber-900/40 w-full text-left">
+            <div className="space-y-1">
+              <div className="text-amber-400">
+                <Leaf className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <p className="font-bold text-[11px] sm:text-xs text-stone-100 leading-tight">Madeira natural</p>
+              <p className="text-[10px] text-stone-400 leading-tight">Beleza e durabilidade</p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-amber-400">
+                <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <p className="font-bold text-[11px] sm:text-xs text-stone-100 leading-tight">Peças exclusivas</p>
+              <p className="text-[10px] text-stone-400 leading-tight">Sob medida para você</p>
+            </div>
+
+            <div className="space-y-1">
+              <div className="text-amber-400">
+                <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <p className="font-bold text-[11px] sm:text-xs text-stone-100 leading-tight">Entrega segura</p>
+              <p className="text-[10px] text-stone-400 leading-tight">Para todo o Brasil</p>
+            </div>
           </div>
         </motion.div>
       </div>
 
-      <span className="hero-mark">01 / AMADEIREIRA</span>
+      {/* Center Scroll Prompt on Mobile */}
+      <div className="relative z-10 w-full pb-6 pt-2 sm:hidden flex flex-col items-center justify-center gap-1.5">
+        <div className="w-4 h-7 rounded-full border-2 border-amber-500/40 flex items-start justify-center p-1">
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="w-1 h-1 bg-amber-400 rounded-full"
+          />
+        </div>
+        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">
+          Role para descobrir
+        </span>
+      </div>
     </section>
   );
 }
@@ -383,7 +423,6 @@ export default function Page() {
         rel="noreferrer"
         aria-label="Falar com a Amadeireira pelo WhatsApp"
       >
-        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
         <img src="/wpp.png" alt="WhatsApp" style={{ width: '24px', height: '24px' }} />
       </a>
 

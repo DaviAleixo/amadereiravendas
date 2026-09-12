@@ -11,6 +11,11 @@ export type Product = {
   oldPrice?: string
   description: string
   images: string[]
+  livePrice?: {
+    price: number
+    installments: string
+    oldPrice?: string
+  }
 }
 
 export const products: Product[] = [

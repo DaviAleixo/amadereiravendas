@@ -10,7 +10,12 @@ function getStoredSettings(): CatalogSettings {
     return INITIAL_SETTINGS;
   }
   try {
-    return JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    if (!parsed.whatsappNumber || parsed.whatsappNumber === '5511999999999') {
+      parsed.whatsappNumber = INITIAL_SETTINGS.whatsappNumber;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+    }
+    return { ...INITIAL_SETTINGS, ...parsed };
   } catch (e) {
     return INITIAL_SETTINGS;
   }
