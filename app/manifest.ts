@@ -1,0 +1,34 @@
+import type { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'Amadeireira — Catálogo Oficial',
+    short_name: 'Amadeireira',
+    description: 'Móveis marcantes, acabamento cuidadoso e a beleza natural da madeira em cada detalhe.',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#0e0805',
+    theme_color: '#0e0805',
+    orientation: 'portrait-primary',
+    icons: [
+      {
+        src: '/logo1.webp',
+        sizes: '192x192',
+        type: 'image/webp',
+        purpose: 'any maskable'
+      },
+      {
+        src: '/logo.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable'
+      },
+      {
+        src: '/icon.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any maskable'
+      }
+    ]
+  };
+}

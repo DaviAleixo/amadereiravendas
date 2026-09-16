@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: { title: 'Amadeireira — Madeira que transforma ambientes', description: 'Conheça nossas peças em madeira maciça.', url: 'https://amadeireira.com.br', siteName: 'Amadeireira', type: 'website' },
   twitter: { card: 'summary_large_image', title: 'Amadeireira — Madeira que transforma ambientes', description: 'Conheça nossas peças em madeira maciça.' },
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Amadeireira',
+    startupImage: '/logo1.webp'
+  },
   icons: {
     icon: [
       { url: '/logo1.webp', type: 'image/webp' },
@@ -20,11 +27,21 @@ export const metadata: Metadata = {
       { url: '/favicon.ico' }
     ],
     shortcut: '/logo1.webp',
-    apple: '/logo1.webp',
+    apple: [
+      { url: '/logo1.webp' },
+      { url: '/icon.png', sizes: '180x180' }
+    ],
   },
 }
 
-export const viewport: Viewport = { colorScheme: 'dark', themeColor: '#0d0b09', width: 'device-width', initialScale: 1 }
+export const viewport: Viewport = {
+  colorScheme: 'dark',
+  themeColor: '#0e0805',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false
+}
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="pt-BR" className={`${display.variable} ${body.variable}`} suppressHydrationWarning><body className="antialiased" suppressHydrationWarning>{children}{process.env.NODE_ENV === 'production' && <Analytics />}</body></html>
