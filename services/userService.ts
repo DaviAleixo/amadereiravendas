@@ -69,12 +69,12 @@ export const userService = {
     return getStoredUsers();
   },
 
-  async create(userData: { name: string; email: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
+  async create(userData: { name: string; email?: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
     const users = await this.getAll();
     const newUser: User = {
       id: `usr-${Date.now()}`,
       name: userData.name,
-      email: userData.email,
+      email: userData.email || '',
       role: userData.role,
       allowedTabs: userData.role === 'ADMINISTRADOR'
         ? ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes']
@@ -160,9 +160,13 @@ export const authService = {
     }
   },
 
-  login(email: string, pass: string): { success: boolean; user?: User; error?: string } {
+  login(identifier: string, pass: string): { success: boolean; user?: User; error?: string } {
     const users = getStoredUsers();
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const cleanId = (identifier || '').trim().toLowerCase();
+    const user = users.find(u => 
+      (u.email && u.email.toLowerCase() === cleanId) || 
+      u.name.toLowerCase() === cleanId
+    );
     
     if (!user) {
       return { success: false, error: 'Usuário não encontrado.' };

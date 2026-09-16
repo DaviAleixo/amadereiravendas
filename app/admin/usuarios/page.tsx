@@ -44,7 +44,6 @@ export default function UsersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<UserRole>('EDITOR');
@@ -71,7 +70,6 @@ export default function UsersPage() {
   const handleOpenCreateModal = () => {
     setEditingUserId(null);
     setName('');
-    setEmail('');
     setPassword('');
     setConfirmPassword('');
     setRole('ADMINISTRADOR');
@@ -82,7 +80,6 @@ export default function UsersPage() {
   const handleOpenEditModal = (user: User) => {
     setEditingUserId(user.id);
     setName(user.name);
-    setEmail(user.email);
     setPassword('');
     setConfirmPassword('');
     setRole(user.role);
@@ -101,8 +98,8 @@ export default function UsersPage() {
 
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) {
-      showToast('Campos Obrigatórios', 'Por favor preencha nome e e-mail.', 'error');
+    if (!name.trim()) {
+      showToast('Campos Obrigatórios', 'Por favor preencha o nome.', 'error');
       return;
     }
 
@@ -125,7 +122,6 @@ export default function UsersPage() {
       // Edit User
       const updated = await userService.update(editingUserId, {
         name,
-        email,
         role,
         allowedTabs: finalTabs
       });
@@ -139,7 +135,6 @@ export default function UsersPage() {
       // Create User
       const created = await userService.create({
         name,
-        email,
         role,
         allowedTabs: finalTabs
       });
@@ -225,7 +220,6 @@ export default function UsersPage() {
           <thead>
             <tr className="bg-[#fcfaf7] border-b border-[#ece4d8] text-[10px] font-extrabold text-[#736557] uppercase tracking-wider">
               <th className="py-4 px-6">Usuário</th>
-              <th className="py-4 px-6">E-mail</th>
               <th className="py-4 px-6">Perfil</th>
               <th className="py-4 px-6">Abas Visíveis (Permissões)</th>
               <th className="py-4 px-6 text-center">Status</th>
@@ -254,11 +248,6 @@ export default function UsersPage() {
                         <p className="text-[10px] text-[#8c7a67] font-mono">id: {user.id}</p>
                       </div>
                     </div>
-                  </td>
-
-                  {/* Email */}
-                  <td className="py-4 px-6 font-medium text-[#3b2d23]">
-                    {user.email}
                   </td>
 
                   {/* Role Badge */}
@@ -349,7 +338,7 @@ export default function UsersPage() {
                   </div>
                   <div>
                     <h4 className="font-extrabold text-[#17100b] text-sm">{user.name}</h4>
-                    <p className="text-xs text-[#736557] font-medium">{user.email}</p>
+                    <p className="text-[10px] text-[#8c7a67] font-mono">id: {user.id}</p>
                   </div>
                 </div>
 
@@ -448,7 +437,7 @@ export default function UsersPage() {
 
               <form onSubmit={handleSaveUser} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Nome Completo: *</label>
+                  <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Nome Completo / Usuário: *</label>
                   <input
                     type="text"
                     required
@@ -456,18 +445,6 @@ export default function UsersPage() {
                     onChange={e => setName(e.target.value)}
                     placeholder="ex: Carlos Silva"
                     className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-bold text-[#17100b]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#5c4a3b] mb-1">E-mail de Acesso: *</label>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="carlos@amadeireira.com.br"
-                    className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium"
                   />
                 </div>
 
