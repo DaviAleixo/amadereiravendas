@@ -13,7 +13,15 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: { title: 'Amadeireira — Madeira que transforma ambientes', description: 'Conheça nossas peças em madeira maciça.', url: 'https://amadeireira.com.br', siteName: 'Amadeireira', type: 'website' },
   twitter: { card: 'summary_large_image', title: 'Amadeireira — Madeira que transforma ambientes', description: 'Conheça nossas peças em madeira maciça.' },
-  icons: { icon: '/icon.svg' },
+  icons: {
+    icon: [
+      { url: '/logo1.webp', type: 'image/webp' },
+      { url: '/logo.png', type: 'image/png' },
+      { url: '/favicon.ico' }
+    ],
+    shortcut: '/logo1.webp',
+    apple: '/logo1.webp',
+  },
 }
 
 export const viewport: Viewport = { colorScheme: 'dark', themeColor: '#0d0b09', width: 'device-width', initialScale: 1 }
