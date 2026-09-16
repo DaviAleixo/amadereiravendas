@@ -10,8 +10,8 @@ import { useToast } from '@/components/admin/ToastContainer';
 export default function LoginPage() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [username, setUsername] = useState('Administrador Amadeireira');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
