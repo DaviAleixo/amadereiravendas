@@ -445,7 +445,7 @@ async function run() {
     {
       id: 'usr-1',
       name: 'Administrador Amadeireira',
-      email: 'admin@amadeireira.com.br',
+      password_hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
       role: 'ADMINISTRADOR',
       active: true,
       allowed_tabs: ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'],
@@ -455,7 +455,7 @@ async function run() {
     {
       id: 'usr-2',
       name: 'Editor Catálogo',
-      email: 'editor@amadeireira.com.br',
+      password_hash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
       role: 'EDITOR',
       active: true,
       allowed_tabs: ['dashboard', 'produtos', 'categorias'],

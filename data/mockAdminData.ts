@@ -34,6 +34,7 @@ export type AdminTabId = 'dashboard' | 'produtos' | 'categorias' | 'live' | 'usu
 export type User = {
   id: string;
   name: string;
+  passwordHash?: string;
   email?: string;
   role: UserRole;
   active: boolean;
@@ -508,7 +509,7 @@ export const INITIAL_USERS: User[] = [
   {
     id: 'usr-1',
     name: 'Administrador Amadeireira',
-    email: 'admin@amadeireira.com.br',
+    passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
     role: 'ADMINISTRADOR',
     active: true,
     allowedTabs: ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'],
@@ -518,7 +519,7 @@ export const INITIAL_USERS: User[] = [
   {
     id: 'usr-2',
     name: 'Editor Catálogo',
-    email: 'editor@amadeireira.com.br',
+    passwordHash: '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918',
     role: 'EDITOR',
     active: true,
     allowedTabs: ['dashboard', 'produtos', 'categorias'],

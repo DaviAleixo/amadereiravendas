@@ -3,26 +3,26 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
-import { Lock, Mail, Eye, EyeOff, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Lock, User as UserIcon, Eye, EyeOff, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { authService } from '@/services/userService';
 import { useToast } from '@/components/admin/ToastContainer';
 
 export default function LoginPage() {
   const router = useRouter();
   const { showToast } = useToast();
-  const [email, setEmail] = useState('admin@amadeireira.com.br');
+  const [username, setUsername] = useState('Administrador Amadeireira');
   const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
 
-    setTimeout(() => {
-      const res = authService.login(email, password);
+    try {
+      const res = await authService.login(username, password);
       setLoading(false);
 
       if (res.success && res.user) {
@@ -31,7 +31,10 @@ export default function LoginPage() {
       } else {
         setErrorMsg(res.error || 'Credenciais inválidas. Tente novamente.');
       }
-    }, 800);
+    } catch (err: any) {
+      setLoading(false);
+      setErrorMsg('Falha ao autenticar usuário.');
+    }
   };
 
   return (
@@ -56,7 +59,7 @@ export default function LoginPage() {
       <div className="bg-[#18100a] border border-[#362215] rounded-[2px] p-6 sm:p-8 shadow-2xl space-y-6">
         <div className="border-b border-[#2d1c11] pb-4">
           <h2 className="text-base font-extrabold text-white uppercase tracking-wider">Acesse sua conta</h2>
-          <p className="text-xs text-[#a69685] mt-1">Informe suas credenciais para gerenciar o catálogo.</p>
+          <p className="text-xs text-[#a69685] mt-1">Informe seu nome de usuário e senha para gerenciar o catálogo.</p>
         </div>
 
         {errorMsg && (
@@ -68,15 +71,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#dcd1c4] mb-1.5">Usuário ou E-mail:</label>
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#dcd1c4] mb-1.5">Nome do Usuário:</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-[#7a6a59] absolute left-3.5 top-3" />
+              <UserIcon className="w-4 h-4 text-[#7a6a59] absolute left-3.5 top-3" />
               <input
                 type="text"
                 required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="Nome do usuário ou email"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder="ex: Administrador Amadeireira"
                 className="w-full pl-10 pr-4 py-2.5 bg-[#0f0905] border border-[#382417] rounded-[2px] text-sm text-stone-100 placeholder-[#5e5043] focus:ring-2 focus:ring-[#c8a97e] focus:border-[#c8a97e] focus:outline-none transition-all font-medium"
               />
             </div>

@@ -121,9 +121,10 @@ export default function UsersPage() {
     if (editingUserId) {
       // Edit User
       const updated = await userService.update(editingUserId, {
-        name,
+        name: name.trim(),
         role,
-        allowedTabs: finalTabs
+        allowedTabs: finalTabs,
+        ...(password ? { password } : {})
       });
 
       setIsModalOpen(false);
@@ -134,7 +135,8 @@ export default function UsersPage() {
     } else {
       // Create User
       const created = await userService.create({
-        name,
+        name: name.trim(),
+        password,
         role,
         allowedTabs: finalTabs
       });

@@ -1,13 +1,27 @@
 import { INITIAL_USERS, User, UserRole, AdminTabId } from '@/data/mockAdminData';
 import { supabase } from '@/lib/supabase';
 
-const USERS_STORAGE_KEY = 'amadeireira_admin_users_v2';
-const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v1';
+const USERS_STORAGE_KEY = 'amadeireira_admin_users_v3';
+const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v2';
+
+export async function hashPassword(password: string): Promise<string> {
+  if (!password) return '';
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + '_amadeireira_salt_2026');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  // Fallback
+  return btoa(password + '_amadeireira_salt_2026');
+}
 
 function mapFromSupabase(row: any): User {
   return {
     id: row.id,
     name: row.name,
+    passwordHash: row.password_hash || row.password || '',
     email: row.email,
     role: row.role as UserRole,
     active: row.active ?? true,
@@ -21,6 +35,10 @@ function mapToSupabase(u: Partial<User>) {
   const row: any = {};
   if (u.id !== undefined) row.id = u.id;
   if (u.name !== undefined) row.name = u.name;
+  if (u.passwordHash !== undefined) {
+    row.password_hash = u.passwordHash;
+    row.password = u.passwordHash;
+  }
   if (u.email !== undefined) row.email = u.email;
   if (u.role !== undefined) row.role = u.role;
   if (u.active !== undefined) row.active = u.active;
@@ -69,12 +87,14 @@ export const userService = {
     return getStoredUsers();
   },
 
-  async create(userData: { name: string; email?: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
+  async create(userData: { name: string; password?: string; passwordHash?: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
     const users = await this.getAll();
+    const hashedPassword = userData.password ? await hashPassword(userData.password) : (userData.passwordHash || '');
+    
     const newUser: User = {
       id: `usr-${Date.now()}`,
-      name: userData.name,
-      email: userData.email || '',
+      name: userData.name.trim(),
+      passwordHash: hashedPassword,
       role: userData.role,
       allowedTabs: userData.role === 'ADMINISTRADOR'
         ? ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes']
@@ -96,11 +116,17 @@ export const userService = {
     return newUser;
   },
 
-  async update(id: string, userData: Partial<User>): Promise<User | null> {
+  async update(id: string, userData: Partial<User> & { password?: string }): Promise<User | null> {
+    const patchData: Partial<User> = { ...userData };
+    if (userData.password) {
+      patchData.passwordHash = await hashPassword(userData.password);
+      delete (patchData as any).password;
+    }
+
     try {
       const { error } = await supabase
         .from('admin_users')
-        .update(mapToSupabase(userData))
+        .update(mapToSupabase(patchData))
         .eq('id', id);
 
       if (error) console.error('Erro ao atualizar usuário no Supabase:', error);
@@ -114,7 +140,7 @@ export const userService = {
 
     users[index] = {
       ...users[index],
-      ...userData
+      ...patchData
     };
     saveUsers(users);
     return users[index];
@@ -160,22 +186,38 @@ export const authService = {
     }
   },
 
-  login(identifier: string, pass: string): { success: boolean; user?: User; error?: string } {
-    const users = getStoredUsers();
-    const cleanId = (identifier || '').trim().toLowerCase();
-    const user = users.find(u => 
-      (u.email && u.email.toLowerCase() === cleanId) || 
-      u.name.toLowerCase() === cleanId
-    );
+  async login(username: string, pass: string): Promise<{ success: boolean; user?: User; error?: string }> {
+    const users = await userService.getAll();
+    const cleanUsername = (username || '').trim().toLowerCase();
+    
+    // Accept strictly username (name)
+    const user = users.find(u => u.name.trim().toLowerCase() === cleanUsername);
     
     if (!user) {
-      return { success: false, error: 'Usuário não encontrado.' };
+      return { success: false, error: 'Nome de usuário não encontrado.' };
     }
     if (!user.active) {
       return { success: false, error: 'Esta conta de usuário está desativada.' };
     }
-    if (!pass || pass.length < 4) {
-      return { success: false, error: 'Senha inválida ou muito curta.' };
+    if (!pass) {
+      return { success: false, error: 'Por favor, informe a senha de acesso.' };
+    }
+
+    const inputHash = await hashPassword(pass);
+
+    // Check encrypted hash with fallback for initial seed accounts
+    const isPasswordValid = 
+      (user.passwordHash && user.passwordHash === inputHash) ||
+      (!user.passwordHash && (pass === 'admin123' || pass === 'admin')) ||
+      (user.passwordHash === pass);
+
+    if (!isPasswordValid) {
+      return { success: false, error: 'Senha incorreta. Tente novamente.' };
+    }
+
+    // Auto migrate user password to cryptographic hash if needed
+    if (!user.passwordHash || user.passwordHash === pass) {
+      userService.update(user.id, { passwordHash: inputHash });
     }
 
     if (typeof window !== 'undefined') {
