@@ -1,10 +1,10 @@
 {
-  "appId": "com.amadeireira.app",
-  "appName": "Amadeireira",
+  "appId": "com.amadeireira.admin",
+  "appName": "Admin Amadeireira",
   "webDir": "public",
   "bundledWebRuntime": false,
   "server": {
-    "url": "https://amadeireiravendas.vercel.app",
+    "url": "https://amadeireiravendas.vercel.app/admin",
     "cleartext": true
   }
 }

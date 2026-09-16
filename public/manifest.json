@@ -1,8 +1,8 @@
-{
-  "name": "Amadeireira — Catálogo Oficial",
-  "short_name": "Amadeireira",
-  "description": "Móveis marcantes, acabamento cuidadoso e a beleza natural da madeira em cada detalhe.",
-  "start_url": "/",
+  "name": "Amadeireira — Painel Admin",
+  "short_name": "Admin Amadeireira",
+  "description": "Painel Administrativo da Amadeireira para gestão de catálogo, produtos e configurações.",
+  "start_url": "/admin",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0e0805",
   "theme_color": "#0e0805",
