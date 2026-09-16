@@ -161,7 +161,7 @@ export function ProductModalMotion({ product, onClose, liveMode }: ProductModalM
               </div>
 
               <a
-                href={productWhatsappUrl(product as any)}
+                href={productWhatsappUrl(product, undefined, liveMode)}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-md shadow-lg shadow-emerald-950/40 transition-all hover:scale-[1.02] active:scale-95"
