@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Image as ImageIcon, Trash2, ArrowLeft, ArrowRight, Star, Upload, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Trash2, ArrowLeft, ArrowRight, Star, Upload, Loader2, X } from 'lucide-react';
 import { productService } from '@/services/productService';
 import { resolveProductImageUrl } from '@/lib/imageUrl';
 
@@ -188,19 +188,32 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
                     />
                   </div>
 
-                  {/* Badge Principal (Capa) */}
-                  {index === 0 && (
+                  {/* Badge Principal (Capa) ou Posição */}
+                  {index === 0 ? (
                     <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 bg-[#1a0f08]/95 backdrop-blur-md text-[#fae4bb] text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-none border border-[#c8a97e]/60 shadow-sm">
-                      <Star className="w-3 h-3 fill-[#fae4bb] text-[#fae4bb]" /> Foto Capa
+                      <Star className="w-3 h-3 fill-[#fae4bb] text-[#fae4bb]" /> Capa
+                    </span>
+                  ) : (
+                    <span className="absolute top-2 left-2 z-10 bg-stone-950/80 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-none backdrop-blur-sm border border-stone-800">
+                      {index + 1}/{images.length}
                     </span>
                   )}
 
-                  {/* Position Index Badge */}
-                  <span className="absolute top-2 right-2 z-10 bg-stone-950/80 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-none backdrop-blur-sm border border-stone-800">
-                    {index + 1}/{images.length}
-                  </span>
+                  {/* Botão X para Excluir Foto Individual no topo */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage(index);
+                    }}
+                    className="absolute top-2 right-2 z-20 w-7 h-7 bg-rose-600 hover:bg-rose-700 active:scale-95 text-white flex items-center justify-center rounded-none shadow-md transition-all border border-white/20 cursor-pointer"
+                    title={`Excluir foto ${index + 1}`}
+                    aria-label={`Excluir foto ${index + 1}`}
+                  >
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                  </button>
 
-                  {/* Controls Toolbar */}
+                  {/* Controls Toolbar (Reorganizar / Mover) */}
                   <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-stone-950/95 via-stone-950/60 to-transparent flex items-center justify-between z-10 transition-opacity">
                     <div className="flex gap-1">
                       {index > 0 && (
@@ -228,10 +241,11 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(index)}
-                      className="p-1.5 bg-rose-950/95 text-rose-200 rounded-none hover:bg-rose-700 transition-colors shadow-sm border border-rose-800/40"
-                      title="Remover foto"
+                      className="inline-flex items-center gap-1 px-2 py-1 bg-rose-950/90 text-rose-200 text-[10px] font-bold rounded-none hover:bg-rose-700 transition-colors shadow-sm border border-rose-800/40"
+                      title="Excluir foto"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
+                      <span>Excluir</span>
                     </button>
                   </div>
                 </motion.div>
