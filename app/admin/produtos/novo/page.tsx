@@ -26,7 +26,7 @@ export default function NewProductPage() {
   const [dimensions, setDimensions] = useState('');
   const [description, setDescription] = useState('');
   const [active, setActive] = useState(true);
-  const [images, setImages] = useState<string[]>(['/capa.webp']);
+  const [images, setImages] = useState<string[]>([]);
 
   const [normalPrice, setNormalPrice] = useState<PriceGroup>({
     price: 0,
@@ -45,6 +45,11 @@ export default function NewProductPage() {
     e.preventDefault();
     if (!name.trim() || !categoryId || normalPrice.price <= 0) {
       showToast('Campos Incompletos', 'Por favor preencha o nome, categoria e preço normal.', 'error');
+      return;
+    }
+
+    if (images.length === 0) {
+      showToast('Adicione uma foto', 'Por favor faça o upload de pelo menos uma foto para o produto.', 'error');
       return;
     }
 

@@ -30,7 +30,6 @@ export default function CategoriesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
   const [active, setActive] = useState(true);
   const [order, setOrder] = useState(1);
 
@@ -56,7 +55,6 @@ export default function CategoriesPage() {
   const handleOpenCreateModal = () => {
     setEditingCategory(null);
     setName('');
-    setDescription('');
     setActive(true);
     setOrder(categories.length + 1);
     setIsModalOpen(true);
@@ -65,7 +63,6 @@ export default function CategoriesPage() {
   const handleOpenEditModal = (cat: Category) => {
     setEditingCategory(cat);
     setName(cat.name);
-    setDescription(cat.description || '');
     setActive(cat.active);
     setOrder(cat.order);
     setIsModalOpen(true);
@@ -81,7 +78,6 @@ export default function CategoriesPage() {
     if (editingCategory) {
       const updated = await categoryService.update(editingCategory.id, {
         name,
-        description,
         active,
         order
       });
@@ -91,7 +87,6 @@ export default function CategoriesPage() {
     } else {
       const created = await categoryService.create({
         name,
-        description,
         active,
         order
       });
@@ -242,10 +237,9 @@ export default function CategoriesPage() {
                     </div>
                   </td>
 
-                  {/* Name & Desc */}
+                  {/* Name */}
                   <td className="py-4 px-6">
                     <p className="font-bold text-[#17100b]">{cat.name}</p>
-                    {cat.description && <p className="text-xs text-[#736557] mt-0.5">{cat.description}</p>}
                   </td>
 
                   {/* Linked Products Count */}
@@ -327,12 +321,6 @@ export default function CategoriesPage() {
                   {cat.active ? 'Ativa' : 'Inativa'}
                 </button>
               </div>
-
-              {cat.description && (
-                <p className="text-xs text-[#736557] bg-[#fcfaf7] p-2.5 rounded-none border border-[#f0e9dd] leading-relaxed">
-                  {cat.description}
-                </p>
-              )}
 
               <div className="flex items-center justify-between pt-2 border-t border-[#f2ece3] text-xs">
                 <span className="inline-flex items-center gap-1 font-bold text-[#8c5b2b] bg-[#fcf6eb] px-2 py-0.5 rounded-none border border-[#ded1be] text-[11px] uppercase tracking-wider">
@@ -418,17 +406,6 @@ export default function CategoriesPage() {
                     onChange={e => setName(e.target.value)}
                     placeholder="ex: Mesas Orgânicas"
                     className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-bold text-[#17100b]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Descrição Opcional:</label>
-                  <textarea
-                    rows={2}
-                    value={description}
-                    onChange={e => setDescription(e.target.value)}
-                    placeholder="Breve descrição da categoria para o catálogo..."
-                    className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium leading-relaxed"
                   />
                 </div>
 

@@ -6,6 +6,7 @@ import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from
 import { ArrowUpRight, Radio } from 'lucide-react';
 import { Product } from '@/data/mockAdminData';
 import { formatCurrency } from '@/lib/currency';
+import { resolveProductImageUrl } from '@/lib/imageUrl';
 
 interface AceternitySpotlightCardProps {
   product: Product;
@@ -62,7 +63,7 @@ export function AceternitySpotlightCard({ product, index, onOpen, liveMode }: Ac
   };
 
   const activePrice = liveMode && product.livePrice && product.livePrice.price > 0 ? product.livePrice : product.normalPrice;
-  const currentImage = product.images[photoIndex] || '/backgrounddesktop.png';
+  const currentImage = resolveProductImageUrl(product.images[photoIndex]) || '/backgrounddesktop.png';
 
   const slideVariants = {
     enter: (dir: number) => ({

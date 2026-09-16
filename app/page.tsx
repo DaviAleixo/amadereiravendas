@@ -342,8 +342,8 @@ export default function Page() {
 
   return (
     <main className="bg-[#120b07] text-[#f2e7d8] min-h-screen">
-      {/* Banner de Oferta com Efeito Shimmer */}
-      {settings.showPromotionBanner && (
+      {/* Banner de Oferta com Efeito Shimmer - Exibido somente quando a Live estiver ATIVA */}
+      {settings.liveMode && settings.showPromotionBanner && (
         <div className="shimmer-gold text-stone-950 text-center py-2.5 px-4 text-xs font-bold uppercase tracking-widest z-[100] relative border-b border-amber-500/40 shadow-md">
           {settings.promotionBannerText}
         </div>

@@ -7,6 +7,7 @@ import { X, Sparkles, MessageCircle } from 'lucide-react';
 import { Product } from '@/data/mockAdminData';
 import { formatCurrency } from '@/lib/currency';
 import { productWhatsappUrl } from '@/lib/whatsapp';
+import { resolveProductImageUrl } from '@/lib/imageUrl';
 
 interface ProductModalMotionProps {
   product: Product | null;
@@ -43,7 +44,7 @@ export function ProductModalMotion({ product, onClose, liveMode }: ProductModalM
   };
 
   const activePrice = liveMode && product.livePrice && product.livePrice.price > 0 ? product.livePrice : product.normalPrice;
-  const currentImage = product.images[index] || '/backgrounddesktop.png';
+  const currentImage = resolveProductImageUrl(product.images[index]) || '/backgrounddesktop.png';
 
   return (
     <AnimatePresence>
@@ -113,7 +114,7 @@ export function ProductModalMotion({ product, onClose, liveMode }: ProductModalM
                       index === i ? 'border-amber-500 shadow-md' : 'border-stone-800 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <Image src={img} alt="" fill className="object-cover" />
+                    <Image src={resolveProductImageUrl(img)} alt="" fill className="object-cover" />
                   </button>
                 ))}
               </div>

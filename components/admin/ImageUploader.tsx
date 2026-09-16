@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { Image as ImageIcon, Plus, Trash2, ArrowLeft, ArrowRight, Star } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { motion } from 'motion/react';
+import { Image as ImageIcon, Trash2, ArrowLeft, ArrowRight, Star, Upload, Loader2 } from 'lucide-react';
+import { productService } from '@/services/productService';
+import { resolveProductImageUrl } from '@/lib/imageUrl';
 
 type ImageUploaderProps = {
   images: string[];
@@ -10,18 +12,50 @@ type ImageUploaderProps = {
 }
 
 export function ImageUploader({ images, onChange }: ImageUploaderProps) {
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [showInput, setShowInput] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [uploadError, setUploadError] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleAddImage = () => {
-    if (!newImageUrl.trim()) return;
-    let formatted = newImageUrl.trim();
-    if (!formatted.startsWith('/') && !formatted.startsWith('http')) {
-      formatted = '/' + formatted;
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    setUploadError('');
+    const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+
+    if (validFiles.length === 0) {
+      setUploadError('Por favor selecione arquivos de imagem válidos (JPEG, PNG, WEBP).');
+      setUploading(false);
+      return;
     }
-    onChange([...images, formatted]);
-    setNewImageUrl('');
-    setShowInput(false);
+
+    const uploadedUrls: string[] = [];
+
+    for (let i = 0; i < validFiles.length; i++) {
+      const file = validFiles[i];
+      setUploadProgress(`Enviando foto ${i + 1} de ${validFiles.length}...`);
+      
+      try {
+        const publicUrl = await productService.uploadImage(file);
+        if (publicUrl) {
+          uploadedUrls.push(publicUrl);
+        } else {
+          setUploadError(`Falha ao enviar ${file.name}`);
+        }
+      } catch (err: any) {
+        setUploadError(`Erro ao enviar ${file.name}: ${err.message || 'Falha de rede'}`);
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      onChange([...images, ...uploadedUrls]);
+    }
+
+    setUploading(false);
+    setUploadProgress('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleRemoveImage = (index: number) => {
@@ -40,167 +74,169 @@ export function ImageUploader({ images, onChange }: ImageUploaderProps) {
     onChange(updated);
   };
 
-  const presetImages = [
-    '/mesacascatamadeiraangelim.jpeg',
-    '/mesacascatapequia.jpeg',
-    '/mesamadeiraangelim1.jpeg',
-    '/aparador1.jpeg',
-    '/prancharesina.jpeg',
-    '/baseraizaroeira.jpeg',
-    '/cadeiraitaliacores.jpeg'
-  ];
-
   return (
     <div className="space-y-4">
+      {/* Hidden Multiple File Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={e => handleFiles(e.target.files)}
+        accept="image/*"
+        multiple
+        className="hidden"
+      />
+
       <div className="flex items-center justify-between">
-        <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">Galeria de Imagens do Produto</label>
-        </div>
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setShowInput(!showInput)}
-          className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8c5b2b] bg-[#fcf6eb] hover:bg-[#f5ebd6] border border-[#ded1be] px-3.5 py-1.5 rounded-none transition-colors shadow-sm uppercase tracking-wider"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Adicionar Foto</span>
-        </motion.button>
+        <label className="block text-xs font-bold uppercase tracking-wider text-stone-700">
+          Fotos do Produto (Upload Direto)
+        </label>
+        {images.length > 0 && (
+          <span className="text-xs text-[#8c5b2b] font-bold">
+            {images.length} {images.length === 1 ? 'foto cadastrada' : 'fotos cadastradas'}
+          </span>
+        )}
       </div>
 
-      <AnimatePresence>
-        {showInput && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
-            className="p-4 bg-[#fcfaf7] rounded-none border border-[#ded6c7] space-y-3 overflow-hidden"
-          >
-            <label className="block text-xs font-bold text-[#5c4a3b]">URL da Imagem ou Caminho Local (ex: /prancharesina.jpeg):</label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newImageUrl}
-                onChange={e => setNewImageUrl(e.target.value)}
-                placeholder="/minha-foto.jpeg ou https://..."
-                className="flex-1 px-3.5 py-2 text-sm bg-white border border-[#ded6c7] rounded-none focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-medium"
-              />
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAddImage}
-                className="px-4 py-2 text-xs font-bold text-white bg-[#8c5b2b] hover:bg-[#a66d35] rounded-none shadow-sm transition-colors uppercase tracking-wider"
-              >
-                Adicionar
-              </motion.button>
+      {/* Drag and Drop Zone */}
+      <div
+        onDragOver={e => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={e => {
+          e.preventDefault();
+          setIsDragging(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+        onClick={() => !uploading && fileInputRef.current?.click()}
+        className={`relative border-2 border-dashed rounded-none p-6 sm:p-8 text-center cursor-pointer transition-all duration-200 ${
+          isDragging
+            ? 'border-[#8c5b2b] bg-[#fdf8f0]'
+            : 'border-[#ded6c7] hover:border-[#8c5b2b] bg-[#fcfaf7] hover:bg-[#faf5ec]'
+        } ${uploading ? 'pointer-events-none opacity-80' : ''}`}
+      >
+        <div className="flex flex-col items-center justify-center space-y-2.5">
+          {uploading ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="w-8 h-8 text-[#8c5b2b] animate-spin" />
+              <p className="text-xs font-bold text-[#17100b]">{uploadProgress || 'Processando envio...'}</p>
+              <p className="text-[11px] text-[#736557]">Salvando no Supabase Storage na nuvem</p>
             </div>
-
-            <div className="pt-2">
-              <p className="text-[10px] font-extrabold text-[#8c7a67] uppercase tracking-wider mb-2">Sugestões de fotos existentes:</p>
-              <div className="flex flex-wrap gap-2">
-                {presetImages.map(img => (
-                  <motion.button
-                    key={img}
-                    type="button"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.97 }}
-                    onClick={() => {
-                      if (!images.includes(img)) onChange([...images, img]);
-                    }}
-                    className="text-xs bg-white border border-[#ded6c7] px-2.5 py-1 rounded-none hover:border-[#8c5b2b] hover:text-[#8c5b2b] transition-colors"
-                  >
-                    {img}
-                  </motion.button>
-                ))}
+          ) : (
+            <>
+              <div className="w-12 h-12 rounded-none bg-[#f2e6d6] text-[#8c5b2b] flex items-center justify-center shadow-inner">
+                <Upload className="w-6 h-6" />
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Swipeable Carousel of Images */}
-      {images.length === 0 ? (
-        <div className="border border-dashed border-[#ded6c7] rounded-none p-6 text-center bg-[#fcfaf7]">
-          <ImageIcon className="w-8 h-8 text-[#a89988] mx-auto mb-1.5" />
-          <p className="text-xs font-bold text-[#17100b]">Nenhuma foto adicionada ainda</p>
-          <p className="text-[11px] text-[#736557] mt-0.5">Clique em "+ Adicionar Foto" para incluir fotos ao produto.</p>
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-bold text-[#17100b]">
+                  Clique para selecionar fotos ou arraste arquivos aqui
+                </p>
+                <p className="text-[11px] text-[#736557]">
+                  Você pode selecionar uma ou várias fotos de uma vez (JPG, PNG, WEBP)
+                </p>
+              </div>
+              <button
+                type="button"
+                className="mt-1 px-4 py-2 bg-[#8c5b2b] hover:bg-[#a66d35] text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-sm transition-colors"
+              >
+                Selecionar do Computador / Celular
+              </button>
+            </>
+          )}
         </div>
-      ) : (
-        <div className="space-y-2">
+      </div>
+
+      {uploadError && (
+        <p className="text-xs text-rose-600 font-semibold">{uploadError}</p>
+      )}
+
+      {/* Gallery Carousel */}
+      {images.length > 0 && (
+        <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between text-[11px] text-[#736557] font-semibold px-1">
-            <span>{images.length} {images.length === 1 ? 'foto cadastrada' : 'fotos cadastradas'}</span>
+            <span>A primeira foto será a capa do anúncio:</span>
             {images.length > 2 && <span className="text-[#8c5b2b] font-bold">← Arraste para o lado →</span>}
           </div>
 
-          {/* Horizontal Scroll Carousel */}
           <div className="flex items-center gap-3 overflow-x-auto pb-3 pt-1 px-1 scrollbar-none snap-x snap-mandatory focus:outline-none">
-            {images.map((imgUrl, index) => (
-              <motion.div
-                key={`${imgUrl}-${index}`}
-                whileHover={{ y: -2 }}
-                className={`group relative w-36 h-36 sm:w-44 sm:h-44 shrink-0 snap-start bg-stone-100 rounded-none overflow-hidden border transition-all ${
-                  index === 0 ? 'border-[#8c5b2b] ring-1 ring-[#8c5b2b] shadow-md' : 'border-[#ded6c7] hover:border-[#c8a97e] shadow-sm'
-                }`}
-              >
-                {/* Image Preview */}
-                <div className="w-full h-full relative overflow-hidden bg-stone-900/10">
-                  <img
-                    src={imgUrl}
-                    alt={`Foto ${index + 1}`}
-                    className="w-full h-full object-cover rounded-none"
-                  />
-                </div>
+            {images.map((rawUrl, index) => {
+              const displayUrl = resolveProductImageUrl(rawUrl);
 
-                {/* Badge Principal */}
-                {index === 0 && (
-                  <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 bg-[#1a0f08]/95 backdrop-blur-md text-[#fae4bb] text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-none border border-[#c8a97e]/60 shadow-sm">
-                    <Star className="w-3 h-3 fill-[#fae4bb] text-[#fae4bb]" /> Principal
-                  </span>
-                )}
-
-                {/* Position Index Badge */}
-                <span className="absolute top-2 right-2 z-10 bg-stone-950/80 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-none backdrop-blur-sm border border-stone-800">
-                  {index + 1}/{images.length}
-                </span>
-
-                {/* Controls Toolbar */}
-                <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-stone-950/95 via-stone-950/60 to-transparent flex items-center justify-between z-10 transition-opacity">
-                  <div className="flex gap-1">
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleMove(index, 'left')}
-                        className="p-1.5 bg-stone-900/95 text-white rounded-none hover:bg-[#8c5b2b] transition-colors shadow-sm"
-                        title="Mover para esquerda"
-                      >
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                    {index < images.length - 1 && (
-                      <button
-                        type="button"
-                        onClick={() => handleMove(index, 'right')}
-                        className="p-1.5 bg-stone-900/95 text-white rounded-none hover:bg-[#8c5b2b] transition-colors shadow-sm"
-                        title="Mover para direita"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+              return (
+                <motion.div
+                  key={`${rawUrl}-${index}`}
+                  whileHover={{ y: -2 }}
+                  className={`group relative w-36 h-36 sm:w-44 sm:h-44 shrink-0 snap-start bg-stone-100 rounded-none overflow-hidden border transition-all ${
+                    index === 0 ? 'border-[#8c5b2b] ring-2 ring-[#8c5b2b] shadow-md' : 'border-[#ded6c7] hover:border-[#c8a97e] shadow-sm'
+                  }`}
+                >
+                  {/* Image Preview */}
+                  <div className="w-full h-full relative overflow-hidden bg-stone-900/10">
+                    <img
+                      src={displayUrl}
+                      alt={`Foto ${index + 1}`}
+                      className="w-full h-full object-cover rounded-none"
+                      onError={e => {
+                        // Fallback placeholder if image not found
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        if (target.parentElement) {
+                          target.parentElement.classList.add('flex', 'items-center', 'justify-center', 'bg-stone-200');
+                        }
+                      }}
+                    />
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    className="p-1.5 bg-rose-950/95 text-rose-200 rounded-none hover:bg-rose-700 transition-colors shadow-sm border border-rose-800/40"
-                    title="Remover foto"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+                  {/* Badge Principal (Capa) */}
+                  {index === 0 && (
+                    <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 bg-[#1a0f08]/95 backdrop-blur-md text-[#fae4bb] text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-none border border-[#c8a97e]/60 shadow-sm">
+                      <Star className="w-3 h-3 fill-[#fae4bb] text-[#fae4bb]" /> Foto Capa
+                    </span>
+                  )}
+
+                  {/* Position Index Badge */}
+                  <span className="absolute top-2 right-2 z-10 bg-stone-950/80 text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-none backdrop-blur-sm border border-stone-800">
+                    {index + 1}/{images.length}
+                  </span>
+
+                  {/* Controls Toolbar */}
+                  <div className="absolute bottom-0 inset-x-0 p-2 bg-gradient-to-t from-stone-950/95 via-stone-950/60 to-transparent flex items-center justify-between z-10 transition-opacity">
+                    <div className="flex gap-1">
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMove(index, 'left')}
+                          className="p-1.5 bg-stone-900/95 text-white rounded-none hover:bg-[#8c5b2b] transition-colors shadow-sm"
+                          title="Tornar capa / Mover para esquerda"
+                        >
+                          <ArrowLeft className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {index < images.length - 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleMove(index, 'right')}
+                          className="p-1.5 bg-stone-900/95 text-white rounded-none hover:bg-[#8c5b2b] transition-colors shadow-sm"
+                          title="Mover para direita"
+                        >
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      className="p-1.5 bg-rose-950/95 text-rose-200 rounded-none hover:bg-rose-700 transition-colors shadow-sm border border-rose-800/40"
+                      title="Remover foto"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       )}

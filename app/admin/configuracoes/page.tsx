@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
-import { Settings, Save, Phone, Building, Info, Database } from 'lucide-react';
+import { Settings, Save, Phone, Building } from 'lucide-react';
 import { settingsService } from '@/services/settingsService';
 import { CatalogSettings } from '@/data/mockAdminData';
 import { useToast } from '@/components/admin/ToastContainer';
@@ -105,24 +105,13 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          {/* Database & Architecture Note Card */}
-          <div className="p-4 bg-stone-50 rounded-none border border-stone-200 space-y-2 pt-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-stone-900">
-              <Database className="w-4 h-4 text-amber-800" />
-              <span>Preparação para Conexão com o Supabase</span>
-            </div>
-            <p className="text-xs text-stone-600 leading-relaxed">
-              O painel está operando na camada de abstração de serviços. Quando o Supabase for conectado na próxima etapa, todos os serviços (`productService`, `categoryService`, `settingsService`, `userService`) utilizarão os clientes `supabase-js` transparentemente.
-            </p>
-          </div>
-
-          <div className="flex justify-end pt-3">
+          <div className="flex justify-end pt-4 border-t border-stone-200/80">
             <motion.button
               type="submit"
               disabled={saving}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-[#18110b] hover:bg-[#25170f] text-[#c8a97e] hover:text-white font-bold text-xs uppercase tracking-wider rounded-none border border-[#3d2719] shadow-md transition-all disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-extrabold text-xs uppercase tracking-wider rounded-none shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>{saving ? 'Salvando...' : 'Salvar Configurações'}</span>

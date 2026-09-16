@@ -25,6 +25,7 @@ import { settingsService } from '@/services/settingsService';
 import { Product, Category } from '@/data/mockAdminData';
 import { formatCurrency } from '@/lib/currency';
 import { productWhatsappUrl } from '@/lib/whatsapp';
+import { resolveProductImageUrl } from '@/lib/imageUrl';
 import { useToast } from '@/components/admin/ToastContainer';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
@@ -102,7 +103,7 @@ function ProductSiteModal({
           onTouchEnd={handleTouchEnd}
         >
           <Image
-            src={product.images[index] || '/capa.webp'}
+            src={resolveProductImageUrl(product.images[index]) || '/logo1.webp'}
             alt={`${product.name}, imagem ${index + 1}`}
             fill
             sizes="(max-width: 800px) 100vw, 60vw"
@@ -398,7 +399,7 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-3 cursor-pointer" onClick={() => setViewProduct(product)}>
                       <div className="w-12 h-12 rounded-none bg-stone-100 overflow-hidden shrink-0 relative shadow-sm">
                         <img
-                          src={product.images[0] || '/capa.webp'}
+                          src={resolveProductImageUrl(product.images[0]) || '/logo1.webp'}
                           alt={product.name}
                           className="w-full h-full object-cover rounded-none"
                         />
@@ -518,7 +519,7 @@ export default function ProductsPage() {
             >
               <div className="flex items-start gap-3" onClick={() => setViewProduct(product)}>
                 <div className="w-16 h-16 rounded-none bg-stone-100 overflow-hidden shrink-0">
-                  <img src={product.images[0] || '/capa.webp'} alt={product.name} className="w-full h-full object-cover rounded-none" />
+                  <img src={resolveProductImageUrl(product.images[0]) || '/logo1.webp'} alt={product.name} className="w-full h-full object-cover rounded-none" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">

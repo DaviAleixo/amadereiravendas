@@ -1,7 +1,34 @@
 import { INITIAL_USERS, User, UserRole, AdminTabId } from '@/data/mockAdminData';
+import { supabase } from '@/lib/supabase';
 
 const USERS_STORAGE_KEY = 'amadeireira_admin_users_v2';
 const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v1';
+
+function mapFromSupabase(row: any): User {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    role: row.role as UserRole,
+    active: row.active ?? true,
+    allowedTabs: Array.isArray(row.allowed_tabs) ? row.allowed_tabs : ['dashboard', 'produtos', 'categorias'],
+    lastActivity: row.last_activity || 'Nunca',
+    createdAt: row.created_at || new Date().toISOString()
+  };
+}
+
+function mapToSupabase(u: Partial<User>) {
+  const row: any = {};
+  if (u.id !== undefined) row.id = u.id;
+  if (u.name !== undefined) row.name = u.name;
+  if (u.email !== undefined) row.email = u.email;
+  if (u.role !== undefined) row.role = u.role;
+  if (u.active !== undefined) row.active = u.active;
+  if (u.allowedTabs !== undefined) row.allowed_tabs = u.allowedTabs;
+  if (u.lastActivity !== undefined) row.last_activity = u.lastActivity;
+  if (u.createdAt !== undefined) row.created_at = u.createdAt;
+  return row;
+}
 
 function getStoredUsers(): User[] {
   if (typeof window === 'undefined') return INITIAL_USERS;
@@ -25,11 +52,25 @@ function saveUsers(users: User[]) {
 
 export const userService = {
   async getAll(): Promise<User[]> {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (!error && data && data.length > 0) {
+        const mapped = data.map(mapFromSupabase);
+        saveUsers(mapped);
+        return mapped;
+      }
+    } catch (e) {
+      console.warn('Falha ao buscar usuários no Supabase, usando cache local:', e);
+    }
     return getStoredUsers();
   },
 
   async create(userData: { name: string; email: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
-    const users = getStoredUsers();
+    const users = await this.getAll();
     const newUser: User = {
       id: `usr-${Date.now()}`,
       name: userData.name,
@@ -42,12 +83,31 @@ export const userService = {
       lastActivity: 'Nunca',
       createdAt: new Date().toISOString()
     };
+
+    try {
+      const { error } = await supabase.from('admin_users').insert(mapToSupabase(newUser));
+      if (error) console.error('Erro ao criar usuário no Supabase:', error);
+    } catch (e) {
+      console.warn('Falha de rede ao criar usuário no Supabase:', e);
+    }
+
     const updated = [...users, newUser];
     saveUsers(updated);
     return newUser;
   },
 
   async update(id: string, userData: Partial<User>): Promise<User | null> {
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .update(mapToSupabase(userData))
+        .eq('id', id);
+
+      if (error) console.error('Erro ao atualizar usuário no Supabase:', error);
+    } catch (e) {
+      console.warn('Falha de rede ao atualizar usuário no Supabase:', e);
+    }
+
     const users = getStoredUsers();
     const index = users.findIndex(u => u.id === id);
     if (index === -1) return null;
@@ -65,12 +125,21 @@ export const userService = {
     const index = users.findIndex(u => u.id === id);
     if (index === -1) return null;
 
-    users[index].active = !users[index].active;
-    saveUsers(users);
-    return users[index];
+    return this.update(id, { active: !users[index].active });
   },
 
   async delete(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .delete()
+        .eq('id', id);
+
+      if (error) console.error('Erro ao deletar usuário no Supabase:', error);
+    } catch (e) {
+      console.warn('Falha de rede ao deletar usuário no Supabase:', e);
+    }
+
     const users = getStoredUsers();
     const filtered = users.filter(u => u.id !== id);
     if (filtered.length === users.length) return false;
@@ -83,7 +152,7 @@ export const authService = {
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return INITIAL_USERS[0];
     const saved = localStorage.getItem(AUTH_STORAGE_KEY);
-    if (!saved) return INITIAL_USERS[0]; // default logged in as Admin for easy testing
+    if (!saved) return INITIAL_USERS[0];
     try {
       return JSON.parse(saved);
     } catch (e) {
@@ -101,7 +170,6 @@ export const authService = {
     if (!user.active) {
       return { success: false, error: 'Esta conta de usuário está desativada.' };
     }
-    // Simple mock password check (any pass >= 4 chars or 'admin123')
     if (!pass || pass.length < 4) {
       return { success: false, error: 'Senha inválida ou muito curta.' };
     }
