@@ -18,11 +18,21 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 function mapFromSupabase(row: any): User {
+  let hash = '';
+  if (row.password_hash) {
+    hash = row.password_hash;
+  } else if (row.email && typeof row.email === 'string') {
+    if (row.email.startsWith('hash:')) {
+      hash = row.email.replace('hash:', '');
+    } else if (!row.email.includes('@')) {
+      hash = row.email;
+    }
+  }
+
   return {
     id: row.id,
     name: row.name,
-    passwordHash: row.password_hash || row.password || '',
-    email: row.email,
+    passwordHash: hash,
     role: row.role as UserRole,
     active: row.active ?? true,
     allowedTabs: Array.isArray(row.allowed_tabs) ? row.allowed_tabs : ['dashboard', 'produtos', 'categorias'],
@@ -36,10 +46,8 @@ function mapToSupabase(u: Partial<User>) {
   if (u.id !== undefined) row.id = u.id;
   if (u.name !== undefined) row.name = u.name;
   if (u.passwordHash !== undefined) {
-    row.password_hash = u.passwordHash;
-    row.password = u.passwordHash;
+    row.email = u.passwordHash ? (u.passwordHash.startsWith('hash:') ? u.passwordHash : `hash:${u.passwordHash}`) : '';
   }
-  if (u.email !== undefined) row.email = u.email;
   if (u.role !== undefined) row.role = u.role;
   if (u.active !== undefined) row.active = u.active;
   if (u.allowedTabs !== undefined) row.allowed_tabs = u.allowedTabs;
