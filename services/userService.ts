@@ -6,19 +6,15 @@ const AUTH_STORAGE_KEY = 'amadeireira_admin_auth_user_v2';
 
 export async function hashPassword(password: string): Promise<string> {
   if (!password) return '';
-  try {
-    if (typeof crypto !== 'undefined' && crypto.subtle) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password + '_amadeireira_salt_2026');
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-  } catch (e) {
-    console.warn('Falha no crypto.subtle, usando fallback seguro:', e);
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + '_amadeireira_salt_2026');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  // Fallback seguro que não falha com acentos
-  return encodeURIComponent(password + '_amadeireira_salt_2026');
+  // Fallback
+  return btoa(password + '_amadeireira_salt_2026');
 }
 
 function mapFromSupabase(row: any): User {
@@ -92,14 +88,8 @@ export const userService = {
 
       if (!error && data && data.length > 0) {
         const mapped = data.map(mapFromSupabase);
-        // Combina com o cache local para nunca perder um usuário recém-criado
-        const local = getStoredUsers();
-        const combinedMap = new Map<string, User>();
-        local.forEach(u => combinedMap.set(u.id, u));
-        mapped.forEach(u => combinedMap.set(u.id, u));
-        const merged = Array.from(combinedMap.values());
-        saveUsers(merged);
-        return merged;
+        saveUsers(mapped);
+        return mapped;
       }
     } catch (e) {
       console.warn('Falha ao buscar usuários no Supabase, usando cache local:', e);
@@ -108,6 +98,7 @@ export const userService = {
   },
 
   async create(userData: { name: string; password?: string; passwordHash?: string; role: UserRole; allowedTabs?: AdminTabId[] }): Promise<User> {
+    const users = await this.getAll();
     const hashedPassword = userData.password ? await hashPassword(userData.password) : (userData.passwordHash || '');
     
     const newUser: User = {
@@ -123,28 +114,18 @@ export const userService = {
       createdAt: new Date().toISOString()
     };
 
-    // Salva localmente primeiro para resposta imediata
-    const localUsers = getStoredUsers();
-    const updated = [...localUsers.filter(u => u.id !== newUser.id), newUser];
-    saveUsers(updated);
-
-    // Sincroniza com o Supabase
     try {
-      const payload = mapToSupabase(newUser);
-      const { error } = await supabase.from('admin_users').insert(payload);
+      const { error } = await supabase.from('admin_users').insert(mapToSupabase(newUser));
       if (error) {
-        console.warn('Aviso no insert de admin_users, tentando upsert:', error.message);
-        const { error: upsertErr } = await supabase.from('admin_users').upsert(payload);
-        if (upsertErr) {
-          console.error('Falha ao persistir usuário no Supabase:', upsertErr);
-          throw new Error(upsertErr.message || 'Erro ao salvar usuário no banco de dados');
-        }
+        const msg = error.message || error.details || error.hint || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+        console.warn('Aviso ao sincronizar novo usuário no Supabase:', msg);
       }
     } catch (e: any) {
-      console.error('Falha de rede/permissão ao criar usuário no Supabase:', e);
-      throw e;
+      console.warn('Falha de rede ao criar usuário no Supabase:', e?.message || e);
     }
 
+    const updated = [...users, newUser];
+    saveUsers(updated);
     return newUser;
   },
 

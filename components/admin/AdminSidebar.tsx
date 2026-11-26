@@ -55,10 +55,11 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
       badge: liveModeActive ? 'AO VIVO' : undefined,
       badgeColor: liveModeActive ? 'bg-rose-700 text-white shadow-sm' : undefined
     },
+    { id: 'usuarios', label: 'Usuários', href: '/admin/usuarios', icon: Users },
     { id: 'configuracoes', label: 'Configurações', href: '/admin/configuracoes', icon: Settings }
   ];
 
-  const allowedTabs = currentUser?.allowedTabs || ['dashboard', 'produtos', 'categorias', 'live', 'configuracoes'];
+  const allowedTabs = currentUser?.allowedTabs || ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'];
   const navItems = currentUser?.role === 'ADMINISTRADOR'
     ? allNavItems
     : allNavItems.filter(item => allowedTabs.includes(item.id));
