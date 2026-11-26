@@ -17,16 +17,22 @@ export async function hashPassword(password: string): Promise<string> {
   return btoa(password + '_amadeireira_salt_2026');
 }
 
+function extractHashFromEmail(email: string): string {
+  if (!email || typeof email !== 'string') return '';
+  const parts = email.split(':');
+  const last = parts[parts.length - 1];
+  if (last && last.length === 64) {
+    return last;
+  }
+  return email.replace(/^[^:]+:/, '').replace(/^hash:/, '');
+}
+
 function mapFromSupabase(row: any): User {
   let hash = '';
   if (row.password_hash) {
     hash = row.password_hash;
   } else if (row.email && typeof row.email === 'string') {
-    if (row.email.startsWith('hash:')) {
-      hash = row.email.replace('hash:', '');
-    } else if (!row.email.includes('@')) {
-      hash = row.email;
-    }
+    hash = extractHashFromEmail(row.email);
   }
 
   return {
@@ -41,12 +47,16 @@ function mapFromSupabase(row: any): User {
   };
 }
 
-function mapToSupabase(u: Partial<User>) {
+function mapToSupabase(u: Partial<User>, fallbackId?: string) {
   const row: any = {};
+  const id = u.id || fallbackId;
   if (u.id !== undefined) row.id = u.id;
   if (u.name !== undefined) row.name = u.name;
   if (u.passwordHash !== undefined) {
-    row.email = u.passwordHash ? (u.passwordHash.startsWith('hash:') ? u.passwordHash : `hash:${u.passwordHash}`) : '';
+    const rawHash = u.passwordHash.replace(/^hash:/, '');
+    const prefix = id || (u.name ? u.name.toLowerCase().replace(/[^a-z0-9_-]/g, '') : `usr-${Date.now()}`);
+    // O prefixo do usuário garante que mesmo senhas idênticas tenham strings únicas na coluna email
+    row.email = `${prefix}:hash:${rawHash}`;
   } else if (u.email !== undefined) {
     row.email = u.email;
   }
@@ -147,7 +157,7 @@ export const userService = {
     saveUsers(users);
 
     try {
-      const payload = mapToSupabase(patchData);
+      const payload = mapToSupabase(patchData, id);
       const { data: updatedRows, error } = await supabase
         .from('admin_users')
         .update(payload)
@@ -158,7 +168,7 @@ export const userService = {
       if (!error && (!updatedRows || updatedRows.length === 0)) {
         await supabase
           .from('admin_users')
-          .upsert(mapToSupabase(users[index]));
+          .upsert(mapToSupabase(users[index], id));
       }
 
       if (error) {

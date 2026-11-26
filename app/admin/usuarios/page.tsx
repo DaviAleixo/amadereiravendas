@@ -118,34 +118,39 @@ export default function UsersPage() {
       ? ALL_TABS.map(t => t.id)
       : selectedTabs;
 
-    if (editingUserId) {
-      // Edit User
-      const updated = await userService.update(editingUserId, {
-        name: name.trim(),
-        role,
-        allowedTabs: finalTabs,
-        ...(password ? { password } : {})
-      });
+    try {
+      if (editingUserId) {
+        // Edit User
+        const updated = await userService.update(editingUserId, {
+          name: name.trim(),
+          role,
+          allowedTabs: finalTabs,
+          ...(password ? { password } : {})
+        });
 
-      setIsModalOpen(false);
-      if (updated) {
-        showToast('Usuário Atualizado!', `As permissões de "${updated.name}" foram salvas.`, 'success');
-        loadUsers();
-      }
-    } else {
-      // Create User
-      const created = await userService.create({
-        name: name.trim(),
-        password,
-        role,
-        allowedTabs: finalTabs
-      });
+        setIsModalOpen(false);
+        if (updated) {
+          showToast('Usuário Atualizado!', `As permissões de "${updated.name}" foram salvas.`, 'success');
+          loadUsers();
+        }
+      } else {
+        // Create User
+        const created = await userService.create({
+          name: name.trim(),
+          password,
+          role,
+          allowedTabs: finalTabs
+        });
 
-      setIsModalOpen(false);
-      if (created) {
-        showToast('Usuário Cadastrado!', `"${created.name}" agora possui acesso com as abas selecionadas.`, 'success');
-        loadUsers();
+        setIsModalOpen(false);
+        if (created) {
+          showToast('Usuário Cadastrado!', `"${created.name}" agora possui acesso com as abas selecionadas.`, 'success');
+          loadUsers();
+        }
       }
+    } catch (err: any) {
+      console.error('Erro ao salvar usuário:', err);
+      showToast('Erro ao Salvar', err?.message || 'Falha ao salvar usuário no banco de dados.', 'error');
     }
   };
 
