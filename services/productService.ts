@@ -176,11 +176,28 @@ export const productService = {
 
   async uploadImage(file: File): Promise<string | null> {
     try {
-      const sanitizedName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      const ext = file.name.includes('.')
+        ? file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+        : '.jpg';
+      const rawBaseName = file.name.includes('.')
+        ? file.name.substring(0, file.name.lastIndexOf('.'))
+        : file.name;
+
+      // Remove acentos (ç, ã, é, ê, etc.), caracteres especiais e espaços para compatibilidade estrita S3/Supabase Storage
+      const safeBaseName = rawBaseName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '_')
+        .replace(/_+/g, '_')
+        .slice(0, 60);
+
+      const sanitizedName = `${Date.now()}_${safeBaseName || 'img'}${ext}`;
+
       const { error: uploadError } = await supabase.storage
         .from('products')
         .upload(sanitizedName, file, {
-          contentType: file.type,
+          contentType: file.type || 'image/jpeg',
           upsert: true,
           cacheControl: '31536000' // 1 ano de cache no navegador / CDN para 0 egress repetido
         });

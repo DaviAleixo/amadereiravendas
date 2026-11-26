@@ -35,7 +35,14 @@ async function run() {
       else if (ext === '.webp') contentType = 'image/webp';
       else if (ext === '.gif') contentType = 'image/gif';
 
-      const sanitizedFilename = filename.trim().replace(/\s+/g, '_');
+      const base = path.basename(filename, ext);
+      const safeBase = base
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '_')
+        .replace(/_+/g, '_');
+      const sanitizedFilename = `${safeBase}${ext}`;
       
       const { data, error } = await supabase.storage
         .from('products')
