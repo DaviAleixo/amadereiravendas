@@ -1,3 +1,4 @@
+{
   "name": "Amadeireira — Painel Admin",
   "short_name": "Admin Amadeireira",
   "description": "Painel Administrativo da Amadeireira para gestão de catálogo, produtos e configurações.",
@@ -12,19 +13,25 @@
       "src": "/logo1.webp",
       "sizes": "192x192",
       "type": "image/webp",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/logo1.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable"
     },
     {
       "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icon.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     }
   ]
 }

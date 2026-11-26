@@ -16,16 +16,22 @@ export default function manifest(): MetadataRoute.Manifest {
         src: '/logo1.webp',
         sizes: '192x192',
         type: 'image/webp',
+        purpose: 'any'
+      },
+      {
+        src: '/logo1.webp',
+        sizes: '192x192',
+        type: 'image/webp',
         purpose: 'maskable'
       },
       {
         src: '/logo.png',
         sizes: '512x512',
         type: 'image/png',
-        purpose: 'maskable'
+        purpose: 'any'
       },
       {
-        src: '/icon.png',
+        src: '/logo.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable'
