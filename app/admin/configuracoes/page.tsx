@@ -61,6 +61,7 @@ function SettingsContent() {
   // Users State
   const [users, setUsers] = useState<User[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
+  const [savingUser, setSavingUser] = useState(false);
   const currentUser = authService.getCurrentUser();
   const isAdmin = currentUser?.role === 'ADMINISTRADOR';
 
@@ -160,40 +161,54 @@ function SettingsContent() {
       return;
     }
 
+    setSavingUser(true);
     const finalTabs = role === 'ADMINISTRADOR' ? ALL_TABS.map(t => t.id) : selectedTabs;
 
-    if (editingUserId) {
-      const updated = await userService.update(editingUserId, {
-        name: userName.trim(),
-        role,
-        allowedTabs: finalTabs,
-        ...(password ? { password } : {})
-      });
-      setIsModalOpen(false);
-      if (updated) {
-        showToast('Usuário Atualizado', `Permissões de "${updated.name}" salvas com sucesso.`, 'success');
-        refreshUsers();
+    try {
+      if (editingUserId) {
+        const updated = await userService.update(editingUserId, {
+          name: userName.trim(),
+          role,
+          allowedTabs: finalTabs,
+          ...(password ? { password } : {})
+        });
+        if (updated) {
+          setUsers(prev => prev.map(u => (u.id === updated.id ? updated : u)));
+          setIsModalOpen(false);
+          showToast('Usuário Atualizado', `Permissões de "${updated.name}" salvas com sucesso.`, 'success');
+        }
+      } else {
+        const created = await userService.create({
+          name: userName.trim(),
+          password,
+          role,
+          allowedTabs: finalTabs
+        });
+        // Atualiza a lista na interface instantaneamente
+        setUsers(prev => {
+          const exists = prev.some(u => u.id === created.id);
+          if (exists) return prev.map(u => (u.id === created.id ? created : u));
+          return [...prev, created];
+        });
+        setIsModalOpen(false);
+        showToast('Usuário Cadastrado', `"${created.name}" adicionado à equipe com sucesso.`, 'success');
       }
-    } else {
-      const created = await userService.create({
-        name: userName.trim(),
-        password,
-        role,
-        allowedTabs: finalTabs
-      });
-      setIsModalOpen(false);
-      if (created) {
-        showToast('Usuário Cadastrado', `"${created.name}" agora possui acesso ao painel.`, 'success');
-        refreshUsers();
-      }
+    } catch (err: any) {
+      showToast('Erro ao salvar usuário', err.message || 'Falha ao salvar no banco de dados.', 'error');
+    } finally {
+      setSavingUser(false);
     }
   };
 
   const refreshUsers = async () => {
-    setUsersLoading(true);
-    const data = await userService.getAll();
-    setUsers(data);
-    setUsersLoading(false);
+    try {
+      const data = await userService.getAll();
+      if (data && data.length > 0) {
+        setUsers(data);
+      }
+    } catch (e) {
+      console.warn('Falha ao atualizar lista de usuários:', e);
+    }
   };
 
   const handleToggleUserActive = async (id: string) => {
@@ -686,11 +701,12 @@ function SettingsContent() {
                   </motion.button>
                   <motion.button
                     type="submit"
+                    disabled={savingUser}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-none shadow-sm uppercase tracking-wider cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-5 py-2 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs rounded-none shadow-sm uppercase tracking-wider cursor-pointer disabled:opacity-50"
                   >
-                    <Save className="w-4 h-4" /> {editingUserId ? 'Salvar Alterações' : 'Cadastrar Usuário'}
+                    <Save className="w-4 h-4" /> {savingUser ? 'Salvando...' : (editingUserId ? 'Salvar Alterações' : 'Cadastrar Usuário')}
                   </motion.button>
                 </div>
               </form>
