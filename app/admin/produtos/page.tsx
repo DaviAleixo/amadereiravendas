@@ -166,7 +166,7 @@ function ProductSiteModal({
           <div className="flex flex-col sm:flex-row items-center gap-2 mt-6">
             <a
               className="button button-whatsapp !m-0 flex-1 rounded-none"
-              href={productWhatsappUrl(product as any)}
+              href={productWhatsappUrl(product as any, undefined, liveMode)}
               target="_blank"
               rel="noreferrer"
             >
@@ -194,7 +194,7 @@ export default function ProductsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'live'>('all');
 
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -220,6 +220,7 @@ export default function ProductsPage() {
       if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
       if (statusFilter === 'active' && !p.active) return false;
       if (statusFilter === 'inactive' && p.active) return false;
+      if (statusFilter === 'live' && (!p.livePrice || p.livePrice.price <= 0)) return false;
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(query);
@@ -343,6 +344,7 @@ export default function ProductsPage() {
               <option value="all">Todos os Status</option>
               <option value="active">🟢 Apenas Ativos</option>
               <option value="inactive">🔴 Apenas Ocultos</option>
+              <option value="live">🔴 Com Preço Live</option>
             </select>
             <ChevronDown className="w-3.5 h-3.5 text-[#8c5b2b] absolute right-2.5 top-3.5 pointer-events-none" />
           </div>

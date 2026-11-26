@@ -316,29 +316,73 @@ export default function Page() {
     init();
   }, []);
 
-  // Category counts
+  const isLive = Boolean(settings?.liveMode);
+
+  // Helper para verificar compatibilidade da categoria do produto com o rótulo da aba
+  const matchCategory = (prod: Product, catName: string) => {
+    if (catName === 'Todos') return true;
+    const formatted = formatCategory(catName);
+    return (
+      prod.category === formatted ||
+      prod.category === catName ||
+      prod.categoryLabel?.toLowerCase() === catName.toLowerCase()
+    );
+  };
+
+  // Se o Modo Live estiver ATIVO: exibe APENAS produtos que possuem preço promocional de Live cadastrado
+  const currentCatalogProducts = useMemo(() => {
+    if (isLive) {
+      return productList.filter(p => p.livePrice && p.livePrice.price > 0);
+    }
+    return productList;
+  }, [isLive, productList]);
+
+  // Categorias visíveis: No modo Live, oculta totalmente categorias que não possuem produtos na Live
+  const visibleCategories = useMemo(() => {
+    if (!isLive) {
+      return categoryList;
+    }
+    return categoryList.filter(cat => {
+      if (cat === 'Todos') return true;
+      return currentCatalogProducts.some(p => matchCategory(p, cat));
+    });
+  }, [isLive, categoryList, currentCatalogProducts]);
+
+  // Se a categoria selecionada foi ocultada na Live, volta para "Todos"
+  useEffect(() => {
+    if (selected !== 'Todos' && !visibleCategories.includes(selected)) {
+      setSelected('Todos');
+    }
+  }, [visibleCategories, selected]);
+
+  // Contagem de produtos por categoria visível
   const categoryCounts = useMemo(() => {
-    const map: Record<string, number> = { Todos: productList.length };
-    categoryList.forEach(cat => {
+    const map: Record<string, number> = { Todos: currentCatalogProducts.length };
+    visibleCategories.forEach(cat => {
       if (cat !== 'Todos') {
-        const formatted = formatCategory(cat);
-        map[cat] = productList.filter(p => p.category === formatted).length;
+        map[cat] = currentCatalogProducts.filter(p => matchCategory(p, cat)).length;
       }
     });
     return map;
-  }, [productList, categoryList]);
+  }, [currentCatalogProducts, visibleCategories]);
 
-  // Filtered Products
+  // Produtos filtrados por categoria e busca
   const filtered = useMemo(() => {
-    let result = selected === 'Todos' ? productList : productList.filter(p => p.category === formatCategory(selected));
+    let result = selected === 'Todos'
+      ? currentCatalogProducts
+      : currentCatalogProducts.filter(p => matchCategory(p, selected));
+
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       result = result.filter(
-        p => p.name.toLowerCase().includes(q) || p.wood.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q))
+        p =>
+          p.name.toLowerCase().includes(q) ||
+          p.wood.toLowerCase().includes(q) ||
+          (p.description && p.description.toLowerCase().includes(q))
       );
     }
     return result;
-  }, [selected, searchQuery, productList]);
+  }, [selected, searchQuery, currentCatalogProducts]);
 
   return (
     <main className="bg-[#120b07] text-[#f2e7d8] min-h-screen">
@@ -360,7 +404,7 @@ export default function Page() {
         {/* Controles de Categoria Aceternity e Busca */}
         <div className="catalog-controls flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between mb-10 pb-4 border-b border-amber-900/30">
           <AceternityTabs
-            categories={categoryList}
+            categories={visibleCategories}
             selected={selected}
             onSelect={setSelected}
             counts={categoryCounts}
@@ -405,10 +449,18 @@ export default function Page() {
             animate={{ opacity: 1 }}
             className="empty-search py-16 text-center text-stone-400 space-y-4 bg-stone-950/40 rounded-md border border-amber-900/20"
           >
-            <p className="text-base font-medium">Nenhuma peça encontrada para "{searchQuery}".</p>
-            <button onClick={() => setSearchQuery('')} className="button button-dark text-xs">
-              Limpar busca
-            </button>
+            <p className="text-base font-medium">
+              {searchQuery
+                ? `Nenhuma peça encontrada para "${searchQuery}".`
+                : isLive
+                ? 'Nenhuma peça com oferta de Live cadastrada nesta categoria.'
+                : 'Nenhuma peça encontrada.'}
+            </p>
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="button button-dark text-xs">
+                Limpar busca
+              </button>
+            )}
           </motion.div>
         )}
       </section>

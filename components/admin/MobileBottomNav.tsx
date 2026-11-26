@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Package, Layers, Radio, Menu } from 'lucide-react';
 import { authService } from '@/services/userService';
-import { AdminTabId } from '@/data/mockAdminData';
+import { AdminTabId, INITIAL_USERS, User } from '@/data/mockAdminData';
 
 type MobileBottomNavProps = {
   onOpenMenu: () => void;
@@ -14,7 +14,12 @@ type MobileBottomNavProps = {
 
 export function MobileBottomNav({ onOpenMenu, liveModeActive = false }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const currentUser = authService.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<User | null>(INITIAL_USERS[0]);
+
+  useEffect(() => {
+    setCurrentUser(authService.getCurrentUser());
+  }, []);
+
   const allowedTabs = currentUser?.allowedTabs || ['dashboard', 'produtos', 'categorias', 'live', 'usuarios', 'configuracoes'];
 
   const allNavItems: { id: AdminTabId; label: string; href: string; icon: any; badge?: boolean }[] = [

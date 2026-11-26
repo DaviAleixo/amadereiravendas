@@ -1,16 +1,19 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { Radio, Save, Power, Activity, Eye, Tag, Zap, Flame } from 'lucide-react';
+import { Radio, Save, Power, Activity, Eye, Tag, Zap, Flame, Edit2, Package, ArrowRight } from 'lucide-react';
 import { settingsService } from '@/services/settingsService';
 import { productService } from '@/services/productService';
-import { CatalogSettings } from '@/data/mockAdminData';
+import { CatalogSettings, Product } from '@/data/mockAdminData';
 import { useToast } from '@/components/admin/ToastContainer';
+import { formatCurrency } from '@/lib/currency';
 
 export default function LivePage() {
   const { showToast } = useToast();
   const [settings, setSettings] = useState<CatalogSettings | null>(null);
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
   const [liveProductsCount, setLiveProductsCount] = useState(0);
   const [totalProductsCount, setTotalProductsCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -32,6 +35,7 @@ export default function LivePage() {
       setBannerText(sets.promotionBannerText);
 
       const liveProds = prods.filter(p => p.livePrice && p.livePrice.price > 0);
+      setLiveProducts(liveProds);
       setLiveProductsCount(liveProds.length);
       setTotalProductsCount(prods.length);
       setLoading(false);
@@ -355,6 +359,84 @@ export default function LivePage() {
             </motion.button>
           </div>
         </form>
+      </div>
+
+      {/* Live Products Manager Card */}
+      <div className="bg-white rounded-none p-6 sm:p-8 border border-[#ece4d8] shadow-sm space-y-4">
+        <div className="border-b border-[#f0e9dd] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="font-extrabold text-[#17100b] text-base tracking-tight uppercase tracking-wider flex items-center gap-2">
+              <Radio className="w-4 h-4 text-rose-600 animate-pulse" />
+              Peças Cadastradas na Live ({liveProducts.length})
+            </h3>
+            <p className="text-xs text-[#736557]">
+              Quando o Modo Live está ativo, o site exibe exclusivamente estas peças.
+            </p>
+          </div>
+          <Link
+            href="/admin/produtos?status=live"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#8c5b2b] hover:text-[#5a3818] uppercase tracking-wider shrink-0"
+          >
+            Ver todos no catálogo <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {liveProducts.length === 0 ? (
+          <div className="py-10 text-center text-stone-500 space-y-2 bg-[#fcfaf7] border border-dashed border-[#ded6c7] p-6">
+            <Package className="w-8 h-8 text-stone-400 mx-auto" />
+            <p className="font-bold text-sm text-[#17100b]">Nenhum produto com preço de Live cadastrado</p>
+            <p className="text-xs text-[#736557] max-w-md mx-auto">
+              Para incluir produtos nesta transmissão, acesse o catálogo, edite a peça e ative a opção "Preço Live / Promocional".
+            </p>
+            <div className="pt-2">
+              <Link
+                href="/admin/produtos"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8c5b2b] hover:bg-[#a66d35] text-white font-bold text-xs uppercase tracking-wider rounded-none"
+              >
+                Ir para o Catálogo de Produtos
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="divide-y divide-[#f2ece3]">
+            {liveProducts.map(p => (
+              <div key={p.id} className="py-3.5 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-12 h-12 rounded-none bg-stone-100 overflow-hidden shrink-0">
+                    <img
+                      src={p.images[0] || '/logo1.webp'}
+                      alt={p.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-[#17100b] truncate">{p.name}</h4>
+                    <p className="text-xs text-[#736557]">{p.categoryLabel} • {p.wood}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="text-right">
+                    <span className="text-[10px] text-stone-400 line-through block">
+                      Normal: {formatCurrency(p.normalPrice.price)}
+                    </span>
+                    <strong className="text-sm font-black text-rose-700 block">
+                      Live: {formatCurrency(p.livePrice?.price || 0)}
+                    </strong>
+                  </div>
+
+                  <Link
+                    href={`/admin/produtos/${p.id}/editar`}
+                    className="p-2 text-[#8c5b2b] bg-[#fcf6eb] hover:bg-[#f5ebd6] rounded-none transition-colors"
+                    title="Editar preço do produto"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </motion.div>
   );

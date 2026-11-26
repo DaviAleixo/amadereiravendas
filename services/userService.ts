@@ -47,6 +47,8 @@ function mapToSupabase(u: Partial<User>) {
   if (u.name !== undefined) row.name = u.name;
   if (u.passwordHash !== undefined) {
     row.email = u.passwordHash ? (u.passwordHash.startsWith('hash:') ? u.passwordHash : `hash:${u.passwordHash}`) : '';
+  } else if (u.email !== undefined) {
+    row.email = u.email;
   }
   if (u.role !== undefined) row.role = u.role;
   if (u.active !== undefined) row.active = u.active;
@@ -114,9 +116,12 @@ export const userService = {
 
     try {
       const { error } = await supabase.from('admin_users').insert(mapToSupabase(newUser));
-      if (error) console.error('Erro ao criar usuário no Supabase:', error);
-    } catch (e) {
-      console.warn('Falha de rede ao criar usuário no Supabase:', e);
+      if (error) {
+        const msg = error.message || error.details || error.hint || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+        console.warn('Aviso ao sincronizar novo usuário no Supabase:', msg);
+      }
+    } catch (e: any) {
+      console.warn('Falha de rede ao criar usuário no Supabase:', e?.message || e);
     }
 
     const updated = [...users, newUser];
@@ -131,17 +136,6 @@ export const userService = {
       delete (patchData as any).password;
     }
 
-    try {
-      const { error } = await supabase
-        .from('admin_users')
-        .update(mapToSupabase(patchData))
-        .eq('id', id);
-
-      if (error) console.error('Erro ao atualizar usuário no Supabase:', error);
-    } catch (e) {
-      console.warn('Falha de rede ao atualizar usuário no Supabase:', e);
-    }
-
     const users = getStoredUsers();
     const index = users.findIndex(u => u.id === id);
     if (index === -1) return null;
@@ -151,6 +145,30 @@ export const userService = {
       ...patchData
     };
     saveUsers(users);
+
+    try {
+      const payload = mapToSupabase(patchData);
+      const { data: updatedRows, error } = await supabase
+        .from('admin_users')
+        .update(payload)
+        .eq('id', id)
+        .select();
+
+      // Se não encontrou linha para atualizar no Supabase (ex: seed local antigo), faz o upsert
+      if (!error && (!updatedRows || updatedRows.length === 0)) {
+        await supabase
+          .from('admin_users')
+          .upsert(mapToSupabase(users[index]));
+      }
+
+      if (error) {
+        const msg = error.message || error.details || error.hint || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+        console.warn('Aviso ao sincronizar usuário no Supabase:', msg);
+      }
+    } catch (e: any) {
+      console.warn('Falha de rede ao atualizar usuário no Supabase:', e?.message || e);
+    }
+
     return users[index];
   },
 
@@ -169,9 +187,12 @@ export const userService = {
         .delete()
         .eq('id', id);
 
-      if (error) console.error('Erro ao deletar usuário no Supabase:', error);
-    } catch (e) {
-      console.warn('Falha de rede ao deletar usuário no Supabase:', e);
+      if (error) {
+        const msg = error.message || error.details || error.hint || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+        console.warn('Aviso ao deletar usuário no Supabase:', msg);
+      }
+    } catch (e: any) {
+      console.warn('Falha de rede ao deletar usuário no Supabase:', e?.message || e);
     }
 
     const users = getStoredUsers();

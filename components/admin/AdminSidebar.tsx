@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,7 +18,7 @@ import {
   UserCheck
 } from 'lucide-react';
 import { authService } from '@/services/userService';
-import { AdminTabId } from '@/data/mockAdminData';
+import { AdminTabId, INITIAL_USERS, User } from '@/data/mockAdminData';
 import { useToast } from './ToastContainer';
 
 type AdminSidebarProps = {
@@ -31,7 +31,11 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
   const pathname = usePathname();
   const router = useRouter();
   const { showToast } = useToast();
-  const currentUser = authService.getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<User | null>(INITIAL_USERS[0]);
+
+  useEffect(() => {
+    setCurrentUser(authService.getCurrentUser());
+  }, []);
 
   const handleLogout = () => {
     authService.logout();
@@ -128,8 +132,10 @@ export function AdminSidebar({ isOpenMobile, onCloseMobile, liveModeActive = fal
         {currentUser && (
           <div className="flex items-center justify-between bg-[#140c07] p-3 rounded-none border border-[#2d1b10]">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-white truncate">{currentUser.name}</p>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <p className="text-xs font-bold text-white truncate" suppressHydrationWarning>
+                {currentUser.name}
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5" suppressHydrationWarning>
                 {currentUser.role === 'ADMINISTRADOR' ? (
                   <span className="inline-flex items-center gap-1 text-[10px] text-[#c8a97e] font-semibold uppercase tracking-wider">
                     <ShieldCheck className="w-3 h-3" /> Admin

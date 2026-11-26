@@ -17,6 +17,52 @@ export function normalizeWhatsappNumber(rawNumber?: string): string {
 }
 
 /**
+ * Formata número de WhatsApp no padrão visual brasileiro com máscara (+55 (DDD) 9XXXX-XXXX)
+ */
+export function formatWhatsappDisplay(val?: string): string {
+  if (!val) return '';
+  let digits = val.replace(/\D/g, '');
+  if (!digits) return '';
+
+  // Remove o DDI 55 se o usuário digitar ou se vier do banco com 55
+  if (digits.startsWith('55') && digits.length > 2) {
+    digits = digits.slice(2);
+  }
+
+  // Limita a no máximo 11 dígitos (DDD + 9 dígitos)
+  digits = digits.slice(0, 11);
+
+  if (digits.length === 0) return '';
+  if (digits.length <= 2) {
+    return `+55 (${digits}`;
+  }
+  if (digits.length <= 6) {
+    return `+55 (${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    const isLandline = digits[2] !== '9';
+    if (isLandline && digits.length === 10) {
+      return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    }
+    return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  return `+55 (${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7, 11)}`;
+}
+
+/**
+ * Limpa e garante formato canônico apenas dígitos com DDI 55 para salvar no banco
+ */
+export function cleanWhatsappDigits(val?: string): string {
+  if (!val) return '';
+  const digits = val.replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10 || digits.length === 11) {
+    return `55${digits}`;
+  }
+  return digits;
+}
+
+/**
  * Dynamically retrieves the active WhatsApp number configured in the admin panel or defaults to the LP number.
  */
 export function getActiveWhatsappNumber(): string {
