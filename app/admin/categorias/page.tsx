@@ -31,7 +31,6 @@ export default function CategoriesPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [name, setName] = useState('');
   const [active, setActive] = useState(true);
-  const [order, setOrder] = useState(1);
 
   // Delete State
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
@@ -44,10 +43,11 @@ export default function CategoriesPage() {
   async function loadData() {
     setLoading(true);
     const [cats, prods] = await Promise.all([
-      categoryService.getAll(),
+      categoryService.getAll(true),
       productService.getAll()
     ]);
-    setCategories(cats);
+    const sorted = [...cats].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    setCategories(sorted);
     setProducts(prods);
     setLoading(false);
   }
@@ -56,7 +56,6 @@ export default function CategoriesPage() {
     setEditingCategory(null);
     setName('');
     setActive(true);
-    setOrder(categories.length + 1);
     setIsModalOpen(true);
   };
 
@@ -64,7 +63,6 @@ export default function CategoriesPage() {
     setEditingCategory(cat);
     setName(cat.name);
     setActive(cat.active);
-    setOrder(cat.order);
     setIsModalOpen(true);
   };
 
@@ -78,8 +76,7 @@ export default function CategoriesPage() {
     if (editingCategory) {
       const updated = await categoryService.update(editingCategory.id, {
         name,
-        active,
-        order
+        active
       });
       if (updated) {
         showToast('Categoria Atualizada', `"${updated.name}" foi salva com sucesso.`, 'success');
@@ -87,8 +84,7 @@ export default function CategoriesPage() {
     } else {
       const created = await categoryService.create({
         name,
-        active,
-        order
+        active
       });
       if (created) {
         showToast('Categoria Criada', `"${created.name}" foi adicionada ao catálogo.`, 'success');
@@ -115,17 +111,22 @@ export default function CategoriesPage() {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= categories.length) return;
 
+    // 1. Move a categoria de posição no array
     const list = [...categories];
-    const tempOrder = list[index].order;
-    list[index].order = list[targetIndex].order;
-    list[targetIndex].order = tempOrder;
+    const [moved] = list.splice(index, 1);
+    list.splice(targetIndex, 0, moved);
 
-    await Promise.all([
-      categoryService.update(list[index].id, { order: list[index].order }),
-      categoryService.update(list[targetIndex].id, { order: list[targetIndex].order })
-    ]);
+    // 2. Reatribui nova ordem sequencial (1, 2, 3, ...)
+    const updatedList = list.map((cat, idx) => ({
+      ...cat,
+      order: idx + 1
+    }));
 
-    loadData();
+    // 3. Atualização otimista imediata na interface
+    setCategories(updatedList);
+
+    // 4. Salva no Supabase e no Cache
+    await categoryService.reorderCategories(updatedList);
   };
 
   const handleStartDelete = (cat: Category) => {
@@ -212,26 +213,34 @@ export default function CategoriesPage() {
                 >
                   {/* Order controls */}
                   <td className="py-4 px-6">
-                    <div className="flex items-center gap-1.5 font-bold text-[#17100b]">
-                      <span className="w-6 text-center text-xs font-mono font-bold">#{cat.order}</span>
-                      <div className="flex flex-col">
-                        {index > 0 && (
+                    <div className="flex items-center gap-2 font-bold text-[#17100b]">
+                      <span className="w-7 h-7 flex items-center justify-center bg-[#fcf6eb] text-[#8c5b2b] border border-[#ded1be] text-xs font-mono font-black">
+                        #{cat.order}
+                      </span>
+                      <div className="flex flex-col items-center justify-center gap-0.5">
+                        {index > 0 ? (
                           <button
+                            type="button"
                             onClick={() => handleMoveOrder(index, 'up')}
-                            className="p-0.5 text-stone-400 hover:text-[#8c5b2b]"
+                            className="p-1 text-stone-500 hover:text-[#8c5b2b] hover:bg-[#ebdcc9] transition-colors rounded-none cursor-pointer"
                             title="Subir ordem"
                           >
                             <ArrowUp className="w-3.5 h-3.5" />
                           </button>
+                        ) : (
+                          <span className="w-5 h-3.5 inline-block opacity-0" />
                         )}
-                        {index < categories.length - 1 && (
+                        {index < categories.length - 1 ? (
                           <button
+                            type="button"
                             onClick={() => handleMoveOrder(index, 'down')}
-                            className="p-0.5 text-stone-400 hover:text-[#8c5b2b]"
+                            className="p-1 text-stone-500 hover:text-[#8c5b2b] hover:bg-[#ebdcc9] transition-colors rounded-none cursor-pointer"
                             title="Descer ordem"
                           >
                             <ArrowDown className="w-3.5 h-3.5" />
                           </button>
+                        ) : (
+                          <span className="w-5 h-3.5 inline-block opacity-0" />
                         )}
                       </div>
                     </div>
@@ -330,8 +339,9 @@ export default function CategoriesPage() {
                 <div className="flex items-center gap-1">
                   {index > 0 && (
                     <button
+                      type="button"
                       onClick={() => handleMoveOrder(index, 'up')}
-                      className="p-1.5 bg-[#fcfaf7] border border-[#ded6c7] rounded-none text-stone-600"
+                      className="p-1.5 bg-[#fcfaf7] border border-[#ded6c7] rounded-none text-stone-700 hover:bg-[#f5ebd6] hover:text-[#8c5b2b] cursor-pointer"
                       title="Subir ordem"
                     >
                       <ArrowUp size={14} />
@@ -339,22 +349,25 @@ export default function CategoriesPage() {
                   )}
                   {index < categories.length - 1 && (
                     <button
+                      type="button"
                       onClick={() => handleMoveOrder(index, 'down')}
-                      className="p-1.5 bg-[#fcfaf7] border border-[#ded6c7] rounded-none text-stone-600"
+                      className="p-1.5 bg-[#fcfaf7] border border-[#ded6c7] rounded-none text-stone-700 hover:bg-[#f5ebd6] hover:text-[#8c5b2b] cursor-pointer"
                       title="Descer ordem"
                     >
                       <ArrowDown size={14} />
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => handleOpenEditModal(cat)}
-                    className="p-1.5 bg-[#fcf6eb] text-[#8c5b2b] border border-[#ded1be] rounded-none font-bold text-xs flex items-center gap-1 uppercase tracking-wider"
+                    className="p-1.5 bg-[#fcf6eb] text-[#8c5b2b] border border-[#ded1be] rounded-none font-bold text-xs flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                   >
                     <Edit2 size={13} /> Editar
                   </button>
                   <button
+                    type="button"
                     onClick={() => handleStartDelete(cat)}
-                    className="p-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-none uppercase tracking-wider"
+                    className="p-1.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-none uppercase tracking-wider cursor-pointer"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -409,29 +422,19 @@ export default function CategoriesPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Ordem de Exibição:</label>
-                    <input
-                      type="number"
-                      min={1}
-                      value={order}
-                      onChange={e => setOrder(parseInt(e.target.value, 10) || 1)}
-                      className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Status:</label>
-                    <select
-                      value={active ? 'active' : 'inactive'}
-                      onChange={e => setActive(e.target.value === 'active')}
-                      className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-bold text-[#17100b]"
-                    >
-                      <option value="active">Ativa</option>
-                      <option value="inactive">Inativa</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-[#5c4a3b] mb-1">Status da Categoria:</label>
+                  <select
+                    value={active ? 'active' : 'inactive'}
+                    onChange={e => setActive(e.target.value === 'active')}
+                    className="w-full px-3.5 py-2.5 text-sm bg-[#fcfaf7] border border-[#ded6c7] rounded-none focus:bg-white focus:ring-1 focus:ring-[#8c5b2b] focus:border-[#8c5b2b] focus:outline-none font-bold text-[#17100b]"
+                  >
+                    <option value="active">Ativa (Visível no Catálogo)</option>
+                    <option value="inactive">Inativa (Oculta do Catálogo)</option>
+                  </select>
+                  <p className="text-[11px] text-stone-500 mt-1">
+                    A ordem de exibição é definida diretamente pelas setas de subir e descer na tabela.
+                  </p>
                 </div>
 
                 <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#f0e9dd]">

@@ -31,7 +31,7 @@ export const categoryService = {
     const now = Date.now();
 
     if (!forceRefresh && cached && cached.data && (now - cached.timestamp < CACHE_TTL_MS)) {
-      return cached.data;
+      return [...cached.data].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     }
 
     try {
@@ -41,15 +41,18 @@ export const categoryService = {
         .order('order', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        saveCache(data);
-        return data;
+        const sortedData = [...data].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+        saveCache(sortedData);
+        return sortedData;
       }
     } catch (e) {
       console.warn('Falha ao buscar categorias no Supabase, usando cache local:', e);
     }
 
-    if (cached && cached.data) return cached.data;
-    return INITIAL_CATEGORIES.sort((a, b) => a.order - b.order);
+    if (cached && cached.data) {
+      return [...cached.data].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+    }
+    return [...INITIAL_CATEGORIES].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
   },
 
   async getById(id: string): Promise<Category | null> {
@@ -57,7 +60,7 @@ export const categoryService = {
     return categories.find(c => c.id === id) || null;
   },
 
-  async create(categoryData: Omit<Category, 'id'>): Promise<Category> {
+  async create(categoryData: Omit<Category, 'id' | 'order'> & { order?: number }): Promise<Category> {
     const categories = await this.getAll(true);
     const slugId = categoryData.name
       .toLowerCase()
@@ -66,8 +69,13 @@ export const categoryService = {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9-]/g, '');
     
+    // Determina a próxima ordem automaticamente no final da lista
+    const maxOrder = categories.reduce((max, c) => Math.max(max, Number(c.order) || 0), 0);
+    const autoOrder = categoryData.order ?? (maxOrder + 1);
+
     const newCategory: Category = {
       ...categoryData,
+      order: autoOrder,
       id: slugId
     };
 
@@ -78,9 +86,43 @@ export const categoryService = {
       console.warn('Falha de rede ao criar categoria no Supabase:', e);
     }
     
-    const updated = [...categories, newCategory];
+    const updated = [...categories, newCategory].sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
     saveCache(updated);
     return newCategory;
+  },
+
+  async reorderCategories(categories: Category[]): Promise<boolean> {
+    // Normaliza a lista garantindo ordens sequenciais 1, 2, 3, ...
+    const normalized = categories.map((c, idx) => ({
+      ...c,
+      order: idx + 1
+    }));
+
+    saveCache(normalized);
+
+    try {
+      const upsertData = normalized.map(c => ({
+        id: c.id,
+        name: c.name,
+        description: c.description || '',
+        active: c.active,
+        order: c.order
+      }));
+
+      const { error } = await supabase.from('categories').upsert(upsertData);
+      if (error) {
+        console.warn('Aviso no upsert em lote de categorias, aplicando por update:', error.message);
+        await Promise.all(
+          normalized.map(c =>
+            supabase.from('categories').update({ order: c.order }).eq('id', c.id)
+          )
+        );
+      }
+      return true;
+    } catch (e) {
+      console.warn('Falha de rede ao salvar ordenação no Supabase:', e);
+      return false;
+    }
   },
 
   async update(id: string, categoryData: Partial<Category>): Promise<Category | null> {
